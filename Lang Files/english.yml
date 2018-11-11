@@ -1,0 +1,66 @@
+messages:
+    complete: You succesfully completed the quest!
+    not-complete: You haven't completed this quest yet.
+    completed: This quest is completed!
+    commands:
+        title: Commands
+        reload: Reloads quests file.
+        info: Shows info about Skript.
+        get: Give quest book.
+    info:
+        title: Skript Info
+        developer: Developer
+        version: Version
+    book-given: Given quest book successfully!
+    no-perm: You don't have permission for that.
+    wrong-usage: Wrong usage.
+    no-quest: No quest could be found.
+    only-in-game: This command is only usable in game.
+    update:
+        updated: You are using latest version of skQuests! (&b%version%&a)
+        outdated-1: You are using an outdated version of Skript. (&4%version% &a-> &b%new version%&c)
+        outdated-2: Please update it with &b/q update &ccommand.
+        updating:
+            checking: Checking updates...
+            already-updated: skQuests is already up to date! (&b%version%&a)
+            updating: Updating skQuests to version &b%version%&a...
+            updated: skQuest has been updated to &b%version% &asuccessfully!
+gui:
+    title: Quests
+    type: Type
+    types:
+        retrieve: Collect
+        break: Block Break
+        kill: Kill
+    requirements: Requirements
+    awards:
+        text: Awards
+        money: Money
+    click-to-complete: Click to finish quest!
+    click-to-see-quests: Click to see quests!
+    page:
+        previous: Previous Page
+        next: Next Page
+        title: Page Info
+        category: Category
+        page: Page
+    close: Close
+    back: Back
+    locked: Locked
+    required-quests: Required Quests
+parsing:
+    error: Error
+    category:
+        no-category: No category could be found
+        name: Category name couldn't be found
+        icon: Category icon couldn't be found
+        quest: No quest in category could be found
+    quest:
+        type: Quest type couldn't be find
+        name: Quest name couldn't be find
+        icon: Quest icon couldn't be find
+        requirements: Quest requirements couldn't be find
+    successful: YAML file has been loaded successfully!
+    not-successful: '%errors% errors occured while reload YAML file.'
+book:
+    title: Quest Book

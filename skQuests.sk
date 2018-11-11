@@ -1,0 +1,498 @@
+options:
+	version: 0.3
+import:
+	java.nio.file.Files
+	java.nio.file.Paths
+	java.io.BufferedReader
+	java.io.InputStreamReader
+	java.net.URL
+	java.lang.System
+function skQuests_contains(l: objects, t: text) :: boolean:
+	{_l::*} isn't set:
+		return false
+	else if {_l::*} contains {_t}:
+		return true
+	else:
+		return false
+function skQuests_checkYAML(v: text, t: text, y: text):
+	yaml value {_v} from {_y} isn't set
+	set yaml value {_v} from {_y} to {_t}
+function skQuests_reloadYAML():
+	load yaml "plugins/Skript/scripts/skQuests/quests.yml" as "skQuests-Quests"
+	load yaml "plugins/Skript/scripts/skQuests/lang.yml" as "skQuests-Lang"
+	load yaml "plugins/Skript/scripts/skQuests/config.yml" as "skQuests-Config"
+	skQuests_checkYAML("messages.complete", "You succesfully completed the quest!", "skQuests-Lang")
+	skQuests_checkYAML("messages.not-complete", "You haven't completed this quest yet.", "skQuests-Lang")
+	skQuests_checkYAML("messages.completed", "This quest is completed!", "skQuests-Lang")
+	skQuests_checkYAML("messages.commands.title", "Commands", "skQuests-Lang")
+	skQuests_checkYAML("messages.commands.reload", "Reloads quests file.", "skQuests-Lang")
+	skQuests_checkYAML("messages.commands.info", "Shows info about Skript.", "skQuests-Lang")
+	skQuests_checkYAML("messages.commands.get", "Give quest book.", "skQuests-Lang")
+	skQuests_checkYAML("messages.info.title", "Skript Info", "skQuests-Lang")
+	skQuests_checkYAML("messages.info.developer", "Developer", "skQuests-Lang")
+	skQuests_checkYAML("messages.info.version", "Version", "skQuests-Lang")
+	skQuests_checkYAML("messages.book-given", "Given quest book successfully!", "skQuests-Lang")
+	skQuests_checkYAML("messages.no-perm", "You don't have permission for that.", "skQuests-Lang")
+	skQuests_checkYAML("messages.wrong-usage", "Wrong usage.", "skQuests-Lang")
+	skQuests_checkYAML("messages.no-quest", "No quest could be found.", "skQuests-Lang")
+	skQuests_checkYAML("messages.only-in-game", "This command is only usable in game.", "skQuests-Lang")
+	skQuests_checkYAML("messages.update.updated", "You are using latest version of skQuests! (&b%%version%%&a)", "skQuests-Lang")
+	skQuests_checkYAML("messages.update.outdated-1", "You are using an outdated version of skQuests. (&4%%version%% &a-> &b%%new version%%&c)", "skQuests-Lang")
+	skQuests_checkYAML("messages.update.outdated-2", "Please update it with &b/q update &ccommand.", "skQuests-Lang")
+	skQuests_checkYAML("messages.update.updating.checking", "Checking updates...", "skQuests-Lang")
+	skQuests_checkYAML("messages.update.updating.already-updated", "skQuests is already up to date! (&b%%version%%&a)", "skQuests-Lang")
+	skQuests_checkYAML("messages.update.updating.updating", "Updating skQuests to version &b%%version%%&a...", "skQuests-Lang")
+	skQuests_checkYAML("messages.update.updating.updated", "skQuest has been updated to &b%%version%% &asuccessfully!", "skQuests-Lang")
+	skQuests_checkYAML("gui.title", "Quests", "skQuests-Lang")
+	skQuests_checkYAML("gui.type", "Type", "skQuests-Lang")
+	skQuests_checkYAML("gui.types.retrieve", "Collect", "skQuests-Lang")
+	skQuests_checkYAML("gui.types.break", "Block Break", "skQuests-Lang")
+	skQuests_checkYAML("gui.types.kill", "Kill", "skQuests-Lang")
+	skQuests_checkYAML("gui.requirements", "Requirements", "skQuests-Lang")
+	skQuests_checkYAML("gui.awards.text", "Awards", "skQuests-Lang")
+	skQuests_checkYAML("gui.awards.money", "Money", "skQuests-Lang")
+	skQuests_checkYAML("gui.click-to-complete", "Click to finish quest!", "skQuests-Lang")
+	skQuests_checkYAML("gui.click-to-see-quests", "Click to see quests!", "skQuests-Lang")
+	skQuests_checkYAML("gui.page.previous", "Previous Page", "skQuests-Lang")
+	skQuests_checkYAML("gui.page.next", "Next Page", "skQuests-Lang")
+	skQuests_checkYAML("gui.page.title", "Page Info", "skQuests-Lang")
+	skQuests_checkYAML("gui.page.category", "Category", "skQuests-Lang")
+	skQuests_checkYAML("gui.page.page", "Page", "skQuests-Lang")
+	skQuests_checkYAML("gui.close", "Close", "skQuests-Lang")
+	skQuests_checkYAML("gui.back", "Back", "skQuests-Lang")
+	skQuests_checkYAML("gui.locked", "Locked", "skQuests-Lang")
+	skQuests_checkYAML("gui.required-quests", "Required Quests", "skQuests-Lang")
+	skQuests_checkYAML("parsing.error", "Error", "skQuests-Lang")
+	skQuests_checkYAML("parsing.category.no-category", "No category could be found", "skQuests-Lang")
+	skQuests_checkYAML("parsing.category.name", "Category name couldn't be found", "skQuests-Lang")
+	skQuests_checkYAML("parsing.category.icon", "Category icon couldn't be found", "skQuests-Lang")
+	skQuests_checkYAML("parsing.category.quest", "No quest in category could be found", "skQuests-Lang")
+	skQuests_checkYAML("parsing.quest.type", "Quest type couldn't be find", "skQuests-Lang")
+	skQuests_checkYAML("parsing.quest.name", "Quest name couldn't be find", "skQuests-Lang")
+	skQuests_checkYAML("parsing.quest.icon", "Quest icon couldn't be find", "skQuests-Lang")
+	skQuests_checkYAML("parsing.quest.requirements", "Quest requirements couldn't be find", "skQuests-Lang")
+	skQuests_checkYAML("parsing.successful", "YAML file has been loaded successfully!", "skQuests-Lang")
+	skQuests_checkYAML("parsing.not-successful", "%%errors%% errors occured while reload YAML file.", "skQuests-Lang")
+	skQuests_checkYAML("book.title", "Quest Book", "skQuests-Lang")
+	skQuests_checkYAML("gui.border", "black stained glass", "skQuests-Config")
+	skQuests_checkYAML("gui.back", "red stained glass", "skQuests-Config")
+	skQuests_checkYAML("gui.page.no-page", "gunpowder", "skQuests-Config")
+	skQuests_checkYAML("gui.page.next", "redstone", "skQuests-Config")
+	skQuests_checkYAML("gui.page.previous", "glowstone dust", "skQuests-Config")
+	skQuests_checkYAML("gui.page.info", "sign item", "skQuests-Config")
+	skQuests_checkYAML("gui.skript-info", "book", "skQuests-Config")
+	save yaml "skQuests-Lang" without extra lines between nodes
+	save yaml "skQuests-Config" without extra lines between nodes
+function skQuests_YAMLParse() :: objects:
+	yaml nodes with keys "" from "skQuests-Quests" isn't set:
+		add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %yaml value ""parsing.category.no-category"" from ""skQuests-Lang""%" to {_return::*}
+	loop yaml nodes with keys "" from "skQuests-Quests":
+		yaml value "%loop-value%.name" from "skQuests-Quests" isn't set:
+			add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %yaml value ""parsing.category.name"" from ""skQuests-Lang""% (%loop-value%)" to {_return::*}
+		yaml value "%loop-value%.icon" from "skQuests-Quests" isn't set:
+			add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %yaml value ""parsing.category.icon"" from ""skQuests-Lang""% (%loop-value%)" to {_return::*}
+		yaml nodes with keys "%loop-value%.quests" from "skQuests-Quests" isn't set:
+			add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %yaml value ""parsing.category.quest"" from ""skQuests-Lang""% (%loop-value%)" to {_return::*}
+		loop yaml nodes with keys "%loop-value%.quests" from "skQuests-Quests":
+			yaml value "%loop-value-1%.quests.%loop-value-2%.type" from "skQuests-Quests" isn't set:
+				add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %yaml value ""parsing.quest.type"" from ""skQuests-Lang""% (%loop-value-1%.quests.%loop-value-2%)" to {_return::*}
+			yaml value "%loop-value-1%.quests.%loop-value-2%.name" from "skQuests-Quests" isn't set:
+				add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %yaml value ""parsing.quest.name"" from ""skQuests-Lang""% (%loop-value-1%.quests.%loop-value-2%)" to {_return::*}
+			yaml value "%loop-value-1%.quests.%loop-value-2%.icon" from "skQuests-Quests" isn't set:
+				add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %yaml value ""parsing.quest.icon"" from ""skQuests-Lang""% (%loop-value-1%.quests.%loop-value-2%)" to {_return::*}
+			yaml list "%loop-value-1%.quests.%loop-value-2%.requirements" from "skQuests-Quests" isn't set:
+				add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %yaml value ""parsing.quest.requirements"" from ""skQuests-Lang""% (%loop-value-1%.quests.%loop-value-2%)" to {_return::*}
+	{_return::*} isn't set:
+		add "&7[&askQuests&7] &a%yaml value ""parsing.successful"" from ""skQuests-Lang""%" to {_return::*}
+	else:
+		set {_t} to "%yaml value ""parsing.not-successful"" from ""skQuests-Lang""%"
+		replace "%%errors%%" with "&l&c%size of {_return::*}%&c" in {_t}
+		add "&7[&askQuests&7] &c%{_t}%" to {_return::*}
+	return {_return::*}
+function skQuests_checkUpdate() :: text:
+	set {_in} to new BufferedReader(new InputStreamReader(new URL("https://raw.githubusercontent.com/Bartuzen/skQuests/master/skQuests.sk").openStream()))
+	while 1 is 1:
+		add 1 to {_count}
+		set {_return::%{_count}%} to {_in}.readLine()
+		{_return::%{_count}%} isn't set:
+			{_in}.close()
+			return {_none}
+		else if {_count} is 2:
+			{_in}.close()
+			replace " ", "	" and "version:" with "" in {_return::%{_count}%}
+			return {_return::%{_count}%}
+load:
+	skQuests_reloadYAML()
+	save yaml "skQuests-Lang" without extra lines between nodes
+	wait 10 tick
+	loop skQuests_YAMLParse():
+		send "%loop-value%" to console
+	set {_ver} to skQuests_checkUpdate()
+	{_ver} is "{@version}":
+		set {_t} to yaml value "messages.update.updated" from "skQuests-Lang"
+		replace "%%version%%" with "{@version}" in {_t}
+		send "&7[&askQuests&7] &a%{_t}%" to console
+	else:
+		set {_t1} to yaml value "messages.update.outdated-1" from "skQuests-Lang"
+		set {_t2} to yaml value "messages.update.outdated-2" from "skQuests-Lang"
+		replace "%%version%%" with "{@version}" in {_t1}
+		replace "%%version%%" with "{@version}" in {_t2}
+		replace "%%new version%%" with {_ver} in {_t1}
+		replace "%%new version%%" with {_ver} in {_t2}
+		send "&7[&askQuests&7] &c%{_t1}%" to console
+		send "&7[&askQuests&7] &c%{_t2}%" to console
+join:
+	set {_p} to "%player%" in lower case
+	load yaml "plugins/Skript/scripts/skQuests/players/%{_p}%.yml" as "skQuests-Player-%{_p}%"
+quit:
+	set {_p} to "%player%" in lower case
+	save yaml "skQuests-Player-%{_p}%" without extra lines between nodes
+	unload yaml "skQuests-Player-%{_p}%"
+death:
+	attacker is a player
+	loop yaml nodes with keys "" from "skQuests-Quests":
+		loop yaml nodes with keys "%loop-value%.quests" from "skQuests-Quests":
+			delete {_ok}
+			loop yaml list "%loop-value-1%.quests.%loop-value-2%.quests" from "skQuests-Quests":
+				skQuests_contains(yaml list "completed" from "skQuests-Player-%attacker's name in lower case%", "%loop-value-3%") is false
+				set {_ok} to 1
+			{_ok} isn't set
+			skQuests_contains(yaml list "completed" from "skQuests-Player-%attacker's name in lower case%", "%loop-value-1%.%loop-value-2%") is false
+			yaml value "%loop-value-1%.quests.%loop-value-2%.type" from "skQuests-Quests" is "kill", "mobkill", "mob_kill" or "mob kill"
+			loop yaml list "%loop-value-1%.quests.%loop-value-2%.requirements" from "skQuests-Quests":
+				set {_l} to "%loop-value-3%"
+				set {_l::*} to {_l} split at " as "
+				set {_l2::*} to {_l::1} split at " "
+				{_l2::1} parsed as integer is set:
+					loop size of {_l2::*} times:
+						loop-number isn't 1
+						add {_l2::%loop-number%} to {_mob::*}
+					set {_mob} to join {_mob::*} with " "
+					type of victim is {_mob} parsed as entity type
+					yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%" is set:
+						{_l2::1} parsed as integer is bigger than yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%"
+						set yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%" to yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%" + 1
+					else:
+						set yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%" to 1
+				else:
+					type of victim is {_l::1} parsed as entity type
+					yaml value "progress.%loop-value-1%.%loop-value-2%.%{_l::1} parsed as entity type%" from "skQuests-Player-%attacker's name in lower case%" isn't set
+					set yaml value "progress.%loop-value-1%.%loop-value-2%.%{_l::1} parsed as entity type%" from "skQuests-Player-%attacker's name in lower case%" to 1
+break:
+	loop yaml nodes with keys "" from "skQuests-Quests":
+		loop yaml nodes with keys "%loop-value%.quests" from "skQuests-Quests":
+			delete {_ok}
+			loop yaml list "%loop-value-1%.quests.%loop-value-2%.quests" from "skQuests-Quests":
+				skQuests_contains(yaml list "completed" from "skQuests-Player-%player's name in lower case%", "%loop-value-3%") is false
+				set {_ok} to 1
+			{_ok} isn't set
+			skQuests_contains(yaml list "completed" from "skQuests-Player-%player's name in lower case%", "%loop-value-1%.%loop-value-2%") is false
+			yaml value "%loop-value-1%.quests.%loop-value-2%.type" from "skQuests-Quests" is "break", "blockbreak", "block_break" or "block break"
+			loop yaml list "%loop-value-1%.quests.%loop-value-2%.requirements" from "skQuests-Quests":
+				set {_l} to "%loop-value-3%"
+				set {_l::*} to {_l} split at " as "
+				{_l::1} parsed as item is set
+				event-block is "%{_l::1}%" parsed as item
+				yaml value "progress.%loop-value-1%.%loop-value-2%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%" is set:
+					first element out of {_l::1} split at " " parsed as integer is bigger than yaml value "progress.%loop-value-1%.%loop-value-2%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%"
+					set yaml value "progress.%loop-value-1%.%loop-value-2%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%" to yaml value "progress.%loop-value-1%.%loop-value-2%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%" + 1
+				else:
+					set yaml value "progress.%loop-value-1%.%loop-value-2%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%" to 1
+function skQuests_quest1(p: player, pa: integer):
+	yaml nodes with keys "" from "skQuests-Quests" is set:
+		size of yaml nodes with keys "" from "skQuests-Quests" is 1:
+			skQuests_quest2({_p}, 1, "%first element out of yaml nodes with keys """" from ""skQuests-Quests""%")
+			stop
+		size of yaml nodes with keys "" from "skQuests-Quests" is more than 45:
+			set {_size} to 6
+		else:
+			set {_size} to ceil(size of yaml nodes with keys "" from "skQuests-Quests"/9)+1
+		open virtual chest inventory with size {_size} named "&a%yaml value ""gui.title"" from ""skQuests-Lang""%" to {_p}
+		set {_int::*} to integers between {_size} * 9 - 9 and {_size} * 9 - 1
+		format gui slot {_int::*} of {_p} with yaml value "gui.border" from "skQuests-Config" parsed as item named " "
+		{_pa} is 1:
+			format gui slot {_size} * 9 - 9 of {_p} with yaml value "gui.page.no-page" from "skQuests-Config" parsed as item named "&a<< &f%yaml value ""gui.page.previous"" from ""skQuests-Lang""%"
+		else:
+			format gui slot {_size} * 9 - 9 of {_p} with yaml value "gui.page.previous" from "skQuests-Config" parsed as item named "&a<< &f%yaml value ""gui.page.previous"" from ""skQuests-Lang""%" to run:
+				skQuests_quest1(player, "%{_pa}-1%" parsed as integer)
+		size of yaml nodes with keys "" from "skQuests-Quests" is more than 45:
+			format gui slot {_size} * 9 - 1 of {_p} with yaml value "gui.page.next" from "skQuests-Config" parsed as item named "&f%yaml value ""gui.page.next"" from ""skQuests-Lang""% &a>>" to run:
+				skQuests_quest1(player, "%{_pa}+1%" parsed as integer)
+		else:	
+			format gui slot {_size} * 9 - 1 of {_p} with yaml value "gui.page.no-page" from "skQuests-Config" parsed as item named "&f%yaml value ""gui.page.next"" from ""skQuests-Lang""% &a>>"
+		format gui slot {_size} * 9 - 7 of {_p} with yaml value "gui.skript-info" from "skQuests-Config" parsed as item named "&a%yaml value ""messages.info.title"" from ""skQuests-Lang""%" with lore "&a%yaml value ""messages.info.developer"" from ""skQuests-Lang""%: &fBartuzen||&a%yaml value ""messages.info.version"" from ""skQuests-Lang""%: &f{@version}"
+		format gui slot {_size} * 9 - 5 of {_p} with yaml value "gui.back" from "skQuests-Config" parsed as item named "&c%yaml value ""gui.close"" from ""skQuests-Lang""%" to close
+		format gui slot {_size} * 9 - 3 of {_p} with yaml value "gui.page.info" from "skQuests-Config" parsed as item named "&a%yaml value ""gui.page.title"" from ""skQuests-Lang""%" with lore "&a%yaml value ""gui.page.page"" from ""skQuests-Lang""%: &f%{_pa}%"
+		loop yaml nodes with keys "" from "skQuests-Quests":
+			add 1 to {_c::2::1}
+			{_c::2::1} is between {_pa} * 45 - 44 and {_pa} * 45
+			set {_name} to yaml value "%loop-value%.name" from "skQuests-Quests"
+			set {_desc} to yaml value "%loop-value%.desc" from "skQuests-Quests"
+			{_desc} is set:
+				set {_desc} to "&f%{_desc}%||&a%yaml value ""gui.click-to-see-quests"" from ""skQuests-Lang""%"
+			else:
+				set {_desc} to "&a%yaml value ""gui.click-to-see-quests"" from ""skQuests-Lang""%"
+			add 1 to {_c::1::1}
+			format gui slot {_c::1::1}-1 of {_p} with yaml value "%loop-value%.icon" from "skQuests-Quests" parsed as item named "&a%{_name}%" with lore {_desc} to close then run function skQuests_quest2({_p}, 1, "%loop-value%")
+	else:
+		send "&c%yaml value ""messages.no-quest"" from ""skQuests-Lang""%" to {_p}
+function skQuests_quest2(p: player, pa: integer, cat: text):
+	yaml nodes with keys "%{_cat}%.quests" from "skQuests-Quests" is set:
+		size of yaml nodes with keys "%{_cat}%.quests" from "skQuests-Quests" is more than 45:
+			set {_size} to 6
+		else:
+			set {_size} to ceil(size of yaml nodes with keys "%{_cat}%.quests" from "skQuests-Quests"/9)+1
+		set {_cn} to yaml value "%{_cat}%.name" from "skQuests-Quests"
+		size of yaml nodes with keys "" from "skQuests-Quests" is 1:
+			open virtual chest inventory with size {_size} named "&a%yaml value ""gui.title"" from ""skQuests-Lang""%" to {_p}
+		else:
+			open virtual chest inventory with size {_size} named "&a%yaml value ""gui.title"" from ""skQuests-Lang""% (&f%{_cn}%&a)" to {_p}
+		set {_int::*} to integers between {_size} * 9 - 9 and {_size} * 9 - 1
+		format gui slot {_int::*} of {_p} with yaml value "gui.border" from "skQuests-Config" parsed as item named " "
+		{_pa} is 1:
+			format gui slot {_size} * 9 - 9 of {_p} with yaml value "gui.page.no-page" from "skQuests-Config" parsed as item named "&a<< &f%yaml value ""gui.page.previous"" from ""skQuests-Lang""%"
+		else:
+			format gui slot {_size} * 9 - 9 of {_p} with yaml value "gui.page.previous" from "skQuests-Config" parsed as item named "&a<< &f%yaml value ""gui.page.previous"" from ""skQuests-Lang""%" to run:
+				skQuests_quest2(player, "%{_pa}-1%" parsed as integer, {_cat})
+		size of yaml nodes with keys "%{_cat}%.quests" from "skQuests-Quests" is more than 45:
+			format gui slot {_size} * 9 - 1 of {_p} with yaml value "gui.page.next" from "skQuests-Config" parsed as item named "&f%yaml value ""gui.page.next"" from ""skQuests-Lang""% &a>>" to run:
+				skQuests_quest2(player, "%{_pa}+1%" parsed as integer, {_cat})
+		else:
+			format gui slot {_size} * 9 - 1 of {_p} with yaml value "gui.page.no-page" from "skQuests-Config" parsed as item named "&f%yaml value ""gui.page.next"" from ""skQuests-Lang""% &a>>"
+		format gui slot {_size} * 9 - 7 of {_p} with yaml value "gui.skript-info" from "skQuests-Config" parsed as item named "&a%yaml value ""messages.info.title"" from ""skQuests-Lang""%" with lore "&a%yaml value ""messages.info.developer"" from ""skQuests-Lang""%: &fBartuzen||&a%yaml value ""messages.info.version"" from ""skQuests-Lang""%: &f{@version}"
+		size of yaml nodes with keys "" from "skQuests-Quests" is 1:
+			format gui slot {_size} * 9 - 5 of {_p} with yaml value "gui.back" from "skQuests-Config" parsed as item named "&c%yaml value ""gui.close"" from ""skQuests-Lang""%" to close
+			format gui slot {_size} * 9 - 3 of {_p} with yaml value "gui.page.info" from "skQuests-Config" parsed as item named "&a%yaml value ""gui.page.title"" from ""skQuests-Lang""%" with lore "&a%yaml value ""gui.page.page"" from ""skQuests-Lang""%: &f%{_pa}%"
+		else:
+			format gui slot {_size} * 9 - 5 of {_p} with yaml value "gui.back" from "skQuests-Config" parsed as item named "&c%yaml value ""gui.back"" from ""skQuests-Lang""%" to run function skQuests_quest1({_p}, 1)
+			format gui slot {_size} * 9 - 3 of {_p} with yaml value "gui.page.info" from "skQuests-Config" parsed as item named "&a%yaml value ""gui.page.title"" from ""skQuests-Lang""%" with lore "&a%yaml value ""gui.page.category"" from ""skQuests-Lang""%: &f%{_cn}%||&a%yaml value ""gui.page.page"" from ""skQuests-Lang""%: &f%{_pa}%"
+		loop yaml nodes with keys "%{_cat}%.quests" from "skQuests-Quests":
+			add 1 to {_c::2::2}
+			{_c::2::2} is between {_pa} * 45 - 44 and {_pa} * 45
+			add 1 to {_c::1::2}
+			delete {_ok} and {_lore::*}
+			loop yaml list "%{_cat}%.quests.%loop-value%.quests" from "skQuests-Quests":
+				skQuests_contains(yaml list "completed" from "skQuests-Player-%{_p}'s name in lower case%", "%loop-value-2%") is false
+				set {_ok} to 1
+			{_ok} isn't set:
+				delete {_no}
+				set {_desc} to yaml value "%{_cat}%.quests.%loop-value%.desc" from "skQuests-Quests"
+				add "&f%{_desc}%" to {_lore::*}
+				yaml value "%{_cat}%.quests.%loop-value%.type" from "skQuests-Quests" is "retrieve":
+					add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.retrieve"" from ""skQuests-Lang""%||&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
+					loop yaml list "%{_cat}%.quests.%loop-value%.requirements" from "skQuests-Quests":
+						set {_l} to "%loop-value-2%"
+						set {_l::*} to {_l} split at " as "
+						{_l::1} parsed as item is set
+						skQuests_contains(yaml list "completed" from "skQuests-Player-%{_p}'s name in lower case%", "%{_cat}%.%loop-value-1%") is false:
+							"%{_p}%" parsed as player has {_l::1} parsed as item:
+								add "&a- %last element out of {_l::*}%" to {_lore::*}
+							else:
+								add "&c- %last element out of {_l::*}% (%amount of {_l::1} parsed as item in {_p}'s inventory%)" to {_lore::*}
+								set {_no} to 1
+						else:
+							add "&a- %last element out of {_l::*}%" to {_lore::*}
+				else if yaml value "%{_cat}%.quests.%loop-value%.type" from "skQuests-Quests" is "break", "blockbreak", "block_break" or "block break":
+					add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.break"" from ""skQuests-Lang""%||&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
+					loop yaml list "%{_cat}%.quests.%loop-value%.requirements" from "skQuests-Quests":
+						set {_l} to "%loop-value-2%"
+						set {_l::*} to {_l} split at " as "
+						{_l::1} parsed as item is set
+						skQuests_contains(yaml list "completed" from "skQuests-Player-%{_p}'s name in lower case%", "%{_cat}%.%loop-value-1%") is false:
+							first element out of {_l::1} split at " " parsed as integer is set:
+								set {_a} to first element out of {_l::1} split at " " parsed as integer
+							else:
+								set {_a} to 1
+							yaml value "progress.%{_cat}%.%loop-value-1%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%{_p}'s name in lower case%" is {_a}:
+								add "&a- %last element out of {_l::*}%" to {_lore::*}
+							else:
+								set {_i} to yaml value "progress.%{_cat}%.%loop-value-1%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%{_p}'s name in lower case%"
+								{_i} is set:
+									add "&c- %last element out of {_l::*}% (%{_i}%)" to {_lore::*}
+								else:
+									add "&c- %last element out of {_l::*}% (0)" to {_lore::*}
+								set {_no} to 1
+						else:
+							add "&a- %last element out of {_l::*}%" to {_lore::*}
+				else if yaml value "%{_cat}%.quests.%loop-value%.type" from "skQuests-Quests" is "kill", "mobkill", "mob_kill" or "mob kill":
+					add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.kill"" from ""skQuests-Lang""%||&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
+					loop yaml list "%{_cat}%.quests.%loop-value%.requirements" from "skQuests-Quests":
+						set {_l} to "%loop-value-2%"
+						set {_l::*} to {_l} split at " as "
+						{_l::1} parsed as entity type is set:
+							set {_mob} to {_l::1} parsed as entity type
+						else:
+							set {_l2::*} to {_l::1} split at " "
+							{_l2::1} parsed as integer is set
+							loop size of {_l2::*} times:
+								loop-number isn't 1
+								add {_l2::%loop-number%} to {_mob::*}
+							set {_mob} to join {_mob::*} with " "
+						{_mob} is set
+						skQuests_contains(yaml list "completed" from "skQuests-Player-%{_p}'s name in lower case%", "%{_cat}%.%loop-value-1%") is false:
+							first element out of {_l::1} split at " " parsed as integer is set:
+								set {_a} to first element out of {_l::1} split at " " parsed as integer
+							else:
+								set {_a} to 1
+							yaml value "progress.%{_cat}%.%loop-value-1%.%{_mob}%" from "skQuests-Player-%{_p}'s name in lower case%" is {_a}:
+								add "&a- %last element out of {_l::*}%" to {_lore::*}
+							else:
+								set {_i} to yaml value "progress.%{_cat}%.%loop-value-1%.%{_mob}%" from "skQuests-Player-%{_p}'s name in lower case%"
+								{_i} is set:
+									add "&c- %last element out of {_l::*}% (%{_i}%)" to {_lore::*}
+								else:
+									add "&c- %last element out of {_l::*}% (0)" to {_lore::*}
+								set {_no} to 1
+						else:
+							add "&a- %last element out of {_l::*}%" to {_lore::*}
+				delete {_aw}
+				loop yaml list "%{_cat}%.quests.%loop-value%.complete.items" from "skQuests-Quests":
+					{_aw} isn't set:
+						set {_aw} to 1
+						add "&e%yaml value ""gui.awards.text"" from ""skQuests-Lang""%:" to {_lore::*}
+					set {_l} to "%loop-value-2%"
+					set {_l::*} to {_l} split at " as "
+					{_l::1} parsed as item is set
+					add "&a- %last element out of {_l::*}%" to {_lore::*}
+				delete {_money}
+				set {_money} to yaml value "%{_cat}%.quests.%loop-value%.complete.money" from "skQuests-Quests"
+				"%{_money}%" parsed as number is set:
+					{_aw} isn't set:
+						set {_aw} to 1
+						add "&e%yaml value ""gui.awards.text"" from ""skQuests-Lang""%:" to {_lore::*}
+					add "&a- %yaml value ""gui.awards.money"" from ""skQuests-Lang""%: &f%{_money}%" to {_lore::*}
+				set {_name} to yaml value "%{_cat}%.quests.%loop-value%.name" from "skQuests-Quests"
+				set {_id} to loop-value
+				skQuests_contains(yaml list "completed" from "skQuests-Player-%{_p}'s name in lower case%", "%{_cat}%.%loop-value%") is false:
+					{_no} isn't set:
+						add "&a%yaml value ""gui.click-to-complete"" from ""skQuests-Lang""%" to {_lore::*}
+						set {_name} to "&a%{_name}%"
+					else:
+						set {_name} to "&c%{_name}%"
+					format gui slot {_c::1::2}-1 of {_p} with yaml value "%{_cat}%.quests.%loop-value%.icon" from "skQuests-Quests" parsed as item named "&a%{_name}%" with lore join {_lore::*} with "||" to close:
+						yaml value "%{_cat}%.quests.%{_id}%.type" from "skQuests-Quests" is "retrieve":
+							loop yaml list "%{_cat}%.quests.%{_id}%.requirements" from "skQuests-Quests":
+								set {_l} to "%loop-value-2%"
+								set {_l::*} to {_l} split at " as "
+								{_l::1} parsed as item is set
+								"%{_p}%" parsed as player doesn't have {_l::1} parsed as item
+								set {_no} to 1
+						{_no} isn't set:
+							yaml value "%{_cat}%.quests.%{_id}%.type" from "skQuests-Quests" is "break", "blockbreak", "block_break", "block break", "kill", "mobkill", "mob_kill" or "mob kill":
+								delete yaml value "progress.%{_cat}%.%{_id}%" from "skQuests-Player-%{_p}'s name in lower case%"
+							loop yaml list "%{_cat}%.quests.%{_id}%.requirements" from "skQuests-Quests":
+								set {_l} to "%loop-value-2%"
+								set {_l::*} to {_l} split at " as "
+								{_l::1} parsed as item is set
+								remove {_l::1} parsed as item from {_p}
+							add "%{_cat}%.%{_id}%" to yaml list "completed" from "skQuests-Player-%{_p}'s name in lower case%"
+							loop yaml list "%{_cat}%.quests.%{_id}%.complete.items" from "skQuests-Quests":
+								set {_l} to "%loop-value-2%"
+								set {_l::*} to {_l} split at " as "
+								{_l::1} parsed as item is set
+								"%{_p}%" parsed as player has space for {_l::1} parsed as item:
+									give {_l::1} parsed as item to {_p}
+								else:
+									drop {_l::1} parsed as item at {_p}
+							loop yaml list "%{_cat}%.quests.%{_id}%.complete.commands" from "skQuests-Quests":
+								set {_l} to loop-value-2
+								replace "%%player%%" with {_p}'s name in {_l}
+								replace "%%id%%" with "%{_cat}%.%{_id}%" in {_l}
+								execute command {_l}
+							set {_money} to yaml value "%{_cat}%.quests.%{_id}%.complete.money" from "skQuests-Quests"
+							"%{_money}%" parsed as number is set:
+								add "%{_money}%" parsed as number to {_p}'s balance
+							send "&a%yaml value ""messages.complete"" from ""skQuests-Lang""%" to {_p}
+						else:
+							send "&c%yaml value ""messages.not-complete"" from ""skQuests-Lang""%" to {_p}
+				else:
+					add "&a%yaml value ""messages.completed"" from ""skQuests-Lang""%" to {_lore::*}
+					set {_name} to "&a%{_name}%"
+					format gui slot {_c::1::2}-1 of {_p} with light green dye named "&a%{_name}%" with lore join {_lore::*} with "||"
+			else:
+				loop yaml list "%{_cat}%.quests.%loop-value%.quests" from "skQuests-Quests":
+					skQuests_contains(yaml list "completed" from "skQuests-Player-%{_p}'s name in lower case%", "%loop-value-2%") is false
+					set {_l} to loop-value-2
+					delete {_name}
+					set {_name} to yaml value "%first element out of {_l} split at "".""%.quests.%last element out of {_l} split at "".""%.name" from "skQuests-Quests"
+					add "&c- %{_name}%" to {_lore::*}
+				format gui slot {_c::1::2}-1 of {_p} with barrier named "&c%yaml value ""gui.locked"" from ""skQuests-Lang""%" with lore "&e%yaml value ""gui.required-quests"" from ""skQuests-Lang""%:||%join {_lore::*} with ""||""%"
+	else:
+		send "&c%yaml value ""messages.no-quest"" from ""skQuests-Lang""%" to {_p}
+command /quest [<text>]:
+	aliases: quests, q, skquests
+	executable by: console and player
+	trigger:
+		arg 1 isn't set:
+			executor is player:
+				skQuests_quest1(player, 1)
+			else:
+				send "&8%yaml value ""messages.commands.title"" from ""skQuests-Lang""%"
+				send "&a/quests reload &8- &a%yaml value ""messages.commands.reload"" from ""skQuests-Lang""%"
+				send "&a/quests info &8- &a%yaml value ""messages.commands.info"" from ""skQuests-Lang""%"
+				send "&a/quests get &8- &a%yaml value ""messages.commands.get"" from ""skQuests-Lang""%"
+		else if arg 1 is "i", "info" or "bilgi":
+			send "&a%yaml value ""messages.info.title"" from ""skQuests-Lang""%"
+			send "&a%yaml value ""messages.info.developer"" from ""skQuests-Lang""%: &fBartuzen"
+			send "&a%yaml value ""messages.info.version"" from ""skQuests-Lang""%: &f{@version}"
+		else if arg 1 is "rl", "rel", "reload" or "yenile":
+			executor is console:
+				set {_ok} to 1
+			player has permission "skquests.reload":
+				set {_ok} to 1
+			{_ok} is set:
+				skQuests_reloadYAML()
+				loop skQuests_YAMLParse():
+					send "%loop-value%"
+			else:
+				send "&c%yaml value ""messages.no-perm"" from ""skQuests-Lang""%"
+		else if arg 1 is "get", "al", "book", "kitap", "give" or "ver":
+			executor is player:
+				player has permission "skquests.getbook":
+					give book named "&a&l%yaml value ""book.title"" from ""skQuests-Lang""%" to player
+					send "&a%yaml value ""messages.book-given"" from ""skQuests-Lang""%"
+				else:
+					send "&c%yaml value ""messages.no-perm"" from ""skQuests-Lang""%"
+			else:
+				send "&c%yaml value ""messages.only-in-game"" from ""skQuests-Lang""%"
+		else if arg 1 is "update" or "güncelle":
+			player has permission "skquests.reload":
+				set {_ok} to 1
+			else if sender is console:
+				set {_ok} to 1
+			{_ok} is set:
+				send "&7[&askQuests&7] &a%yaml value ""messages.update.updating.checking"" from ""skQuests-Lang""%"
+				set {_ver} to skQuests_checkUpdate()
+				{_ver} is "{@version}":
+					set {_t} to yaml value "messages.update.updating.already-updated" from "skQuests-Lang"
+					replace "%%version%%" with {_ver} in {_t}
+					send "&7[&askQuests&7] &a%{_t}%"
+				else:
+					set {_t} to yaml value "messages.update.updating.updating" from "skQuests-Lang"
+					replace "%%version%%" with {_ver} in {_t}
+					send "&7[&askQuests&7] &a%{_t}%"
+					set {_in} to new BufferedReader(new InputStreamReader(new URL("https://raw.githubusercontent.com/Bartuzen/skQuests/master/skQuests.sk").openStream()))
+					while 1 is 1:
+						add 1 to {_count}
+						set {_sk::%{_count}%} to {_in}.readLine()
+						{_sk::%{_count}%} isn't set
+						stop loop
+					{_in}.close()
+					Files.write(Paths.get("plugins/Skript/scripts/%script's name%.sk"), (join {_sk::*} with "%System.lineSeparator()%").getBytes())
+					set {_t} to yaml value "messages.update.updating.updated" from "skQuests-Lang"
+					replace "%%version%%" with {_ver} in {_t}
+					send "&7[&askQuests&7] &a%{_t}%"
+			else:
+				send "&c%yaml value ""messages.no-perm"" from ""skQuests-Lang""%"
+		else:
+			send "&8%yaml value ""messages.commands.title"" from ""skQuests-Lang""%"
+			send "&a/quests reload &8- &a%yaml value ""messages.commands.reload"" from ""skQuests-Lang""%"
+			send "&a/quests info &8- &a%yaml value ""messages.commands.info"" from ""skQuests-Lang""%"
+			send "&a/quests get &8- &a%yaml value ""messages.commands.get"" from ""skQuests-Lang""%"
+rightclick with book:
+	name of player's tool is "&a&l%yaml value ""book.title"" from ""skQuests-Lang""%"
+	skQuests_quest1(player, 1)
+preparing craft:
+	loop integers between 1 and 9:
+		name of slot loop-number of event-inventory is "&a&l%yaml value ""book.title"" from ""skQuests-Lang""%"
+		delete slot 0 of event-inventory

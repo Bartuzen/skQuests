@@ -1,0 +1,66 @@
+messages:
+    complete: Görevi başarıyla tamamladın!
+    not-complete: Bu görevi henüz tamamlamadın.
+    completed: Bu görev tamamlanmış!
+    commands:
+        title: Komutlar
+        reload: Görev dosyasını yeniler.
+        info: Skript bilgilerini gösterir.
+        get: Görev kitabını verir.
+    info:
+        title: Skript Bilgileri
+        developer: Kodlayan
+        version: Sürüm
+    book-given: Görev kitabı başarıyla verildi!
+    no-perm: Bunun için yetkin yok.
+    wrong-usage: Hatalı kullanım.
+    no-quest: Görev bulunamadı.
+    only-in-game: Bu komut sadece oyun içinden kullanılabilir.
+    update:
+        updated: skQuest'in son son sürümünü kullanıyorsunuz! (&b%version%&a)
+        outdated-1: skQuests'in eski bir sürümünü kullanıyorsunuz. (&4%version% &a-> &b%new version%&c)
+        outdated-2: Lütfen &b/q update komutu ile güncelleyin.
+        updating:
+            checking: Güncellemeler kontrol ediliyor...
+            already-updated: skQuests zaten güncel! (&b%version%&a)
+            updating: skQuest &b%version%&a sürümüne güncelleniyor...
+            updated: skQuests başarıyla &b%version% &asürümüne güncellendi!
+gui:
+    title: Görevler
+    type: Tür
+    types:
+        retrieve: Toplama
+        break: Blok Kırma
+        kill: Öldürme
+    requirements: Gerekenler
+    awards:
+        text: Ödüller
+        money: Para
+    click-to-complete: Görevi bitirmek için tıkla!
+    click-to-see-quests: Görevleri görmek için tıkla!
+    page:
+        previous: Önceki Sayfa
+        next: Sonraki Sayfa
+        title: Sayfa Bilgileri
+        category: Kategori
+        page: Sayfa
+    close: Kapat
+    back: Geri Dön
+    locked: Kilitli
+    required-quests: Gereken Görevler
+parsing:
+    error: Hata
+    category:
+        no-category: Kategori bulunamadı
+        name: Kategori ismi bulunamadı
+        icon: Kategori ikonu bulunamadı
+        quest: Kategoride görev bulunamadı
+    quest:
+        type: Görev türü bulunamadı
+        name: Görev adı bulunamadı
+        icon: Görev ikonu bulunamadı
+        requirements: Görev gerekenleri bulunamadı.
+    successful: YAML dosyası başarıyla yüklendi!
+    not-successful: YAML dosyası yüklenirken %errors% hata oluştu.
+book:
+    title: Görev Kitabı

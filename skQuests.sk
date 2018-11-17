@@ -1,5 +1,5 @@
 options:
-	version: 0.4
+	version: 0.4.1
 import:
 	java.nio.file.Files
 	java.nio.file.Paths
@@ -66,6 +66,8 @@ function skQuests_reloadYAML():
 	skQuests_checkYAML("gui.back", "Back", "skQuests-Lang")
 	skQuests_checkYAML("gui.locked", "Locked", "skQuests-Lang")
 	skQuests_checkYAML("gui.required-quests", "Required Quests", "skQuests-Lang")
+	skQuests_checkYAML("title.completed", "Quest Completed!", "skQuests-Lang")
+	skQuests_checkYAML("title.quest-completed", "You completed &b%%quest%% &aquest!", "skQuests-Lang")
 	skQuests_checkYAML("parsing.error", "YAML Error", "skQuests-Lang")
 	skQuests_checkYAML("parsing.category.no-category", "No category could be found", "skQuests-Lang")
 	skQuests_checkYAML("parsing.category.name", "Category name couldn't be found", "skQuests-Lang")
@@ -89,6 +91,12 @@ function skQuests_reloadYAML():
 	skQuests_checkYAML("gui.page.previous", "glowstone dust", "skQuests-Config")
 	skQuests_checkYAML("gui.page.info", "sign item", "skQuests-Config")
 	skQuests_checkYAML("gui.skript-info", "book", "skQuests-Config")
+	skQuests_checkYAML("complete.title.fade-in", "10", "skQuests-Config")
+	skQuests_checkYAML("complete.title.stay", "70", "skQuests-Config")
+	skQuests_checkYAML("complete.title.fade-out", "20", "skQuests-Config")
+	skQuests_checkYAML("complete.sound.sound", "entity.player.levelup", "skQuests-Config")
+	skQuests_checkYAML("complete.sound.volume", "1", "skQuests-Config")
+	skQuests_checkYAML("complete.sound.pitch", "1", "skQuests-Config")
 	save yaml "skQuests-Lang" without extra lines between nodes
 	save yaml "skQuests-Config" without extra lines between nodes
 function skQuests_YAMLParse() :: objects:
@@ -232,14 +240,23 @@ death:
 					set {_mob} to join {_mob::*} with " "
 					type of victim is {_mob} parsed as entity type
 					yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%" is set:
-						{_l2::1} parsed as integer is bigger than yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%"
-						set yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%" to yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%" + 1
+						{_l2::1} parsed as integer is bigger than yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%":
+							set yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%" to yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%" + 1
+							{_l2::1} parsed as integer is yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%"
+							set {_t} to yaml value "title.quest-completed" from "skQuests-Lang"
+							replace "%%quest%%" with yaml value "%loop-value-1%.quests.%loop-value-2%.name" from "skQuests-Quests" in {_t}
+							try attacker.sendTitle("&a%yaml value ""title.completed"" from ""skQuests-Lang""%","&a%{_t}%",("%yaml value ""complete.title.fade-in"" from ""skQuests-Config""%" parsed as integer otherwise 10),("%yaml value ""complete.title.stay"" from ""skQuests-Config""%" parsed as integer otherwise 70),("%yaml value ""complete.title.fade-out"" from ""skQuests-Config""%" parsed as integer otherwise 20))
+							play sound yaml value "complete.sound.sound" from "skQuests-Config" with volume ("%yaml value ""complete.sound.volume"" from ""skQuests-Config""%" parsed as integer otherwise 1) with pitch ("%yaml value ""complete.sound.pitch"" from ""skQuests-Config""%" parsed as integer otherwise 1) at attacker for attacker
 					else:
 						set yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%" to 1
 				else:
 					type of victim is {_l::1} parsed as entity type
 					yaml value "progress.%loop-value-1%.%loop-value-2%.%{_l::1} parsed as entity type%" from "skQuests-Player-%attacker's name in lower case%" isn't set
 					set yaml value "progress.%loop-value-1%.%loop-value-2%.%{_l::1} parsed as entity type%" from "skQuests-Player-%attacker's name in lower case%" to 1
+					set {_t} to yaml value "title.quest-completed" from "skQuests-Lang"
+					replace "%%quest%%" with yaml value "%loop-value-1%.quests.%loop-value-2%.name" from "skQuests-Quests" in {_t}
+					try attacker.sendTitle("&a%yaml value ""title.completed"" from ""skQuests-Lang""%","&a%{_t}%",("%yaml value ""complete.title.fade-in"" from ""skQuests-Config""%" parsed as integer otherwise 10),("%yaml value ""complete.title.stay"" from ""skQuests-Config""%" parsed as integer otherwise 70),("%yaml value ""complete.title.fade-out"" from ""skQuests-Config""%" parsed as integer otherwise 20))
+					play sound yaml value "complete.sound.sound" from "skQuests-Config" with volume ("%yaml value ""complete.sound.volume"" from ""skQuests-Config""%" parsed as integer otherwise 1) with pitch ("%yaml value ""complete.sound.pitch"" from ""skQuests-Config""%" parsed as integer otherwise 1) at attacker for attacker
 break:
 	loop yaml nodes with keys "" from "skQuests-Quests":
 		loop yaml nodes with keys "%loop-value%.quests" from "skQuests-Quests":
@@ -258,8 +275,18 @@ break:
 				yaml value "progress.%loop-value-1%.%loop-value-2%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%" is set:
 					first element out of {_l::1} split at " " parsed as integer is bigger than yaml value "progress.%loop-value-1%.%loop-value-2%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%"
 					set yaml value "progress.%loop-value-1%.%loop-value-2%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%" to yaml value "progress.%loop-value-1%.%loop-value-2%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%" + 1
+					first element out of {_l::1} split at " " parsed as integer is yaml value "progress.%loop-value-1%.%loop-value-2%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%"
+					set {_t} to yaml value "title.quest-completed" from "skQuests-Lang"
+					replace "%%quest%%" with yaml value "%loop-value-1%.quests.%loop-value-2%.name" from "skQuests-Quests" in {_t}
+					try player.sendTitle("&a%yaml value ""title.completed"" from ""skQuests-Lang""%","&a%{_t}%",("%yaml value ""complete.title.fade-in"" from ""skQuests-Config""%" parsed as integer otherwise 10),("%yaml value ""complete.title.stay"" from ""skQuests-Config""%" parsed as integer otherwise 70),("%yaml value ""complete.title.fade-out"" from ""skQuests-Config""%" parsed as integer otherwise 20))
+					play sound yaml value "complete.sound.sound" from "skQuests-Config" with volume ("%yaml value ""complete.sound.volume"" from ""skQuests-Config""%" parsed as integer otherwise 1) with pitch ("%yaml value ""complete.sound.pitch"" from ""skQuests-Config""%" parsed as integer otherwise 1) at player for player
 				else:
 					set yaml value "progress.%loop-value-1%.%loop-value-2%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%" to 1
+					first element out of {_l::1} split at " " parsed as integer isn't set
+					set {_t} to yaml value "title.quest-completed" from "skQuests-Lang"
+					replace "%%quest%%" with yaml value "%loop-value-1%.quests.%loop-value-2%.name" from "skQuests-Quests" in {_t}
+					try player.sendTitle("&a%yaml value ""title.completed"" from ""skQuests-Lang""%","&a%{_t}%",("%yaml value ""complete.title.fade-in"" from ""skQuests-Config""%" parsed as integer otherwise 10),("%yaml value ""complete.title.stay"" from ""skQuests-Config""%" parsed as integer otherwise 70),("%yaml value ""complete.title.fade-out"" from ""skQuests-Config""%" parsed as integer otherwise 20))
+					play sound yaml value "complete.sound.sound" from "skQuests-Config" with volume ("%yaml value ""complete.sound.volume"" from ""skQuests-Config""%" parsed as integer otherwise 1) with pitch ("%yaml value ""complete.sound.pitch"" from ""skQuests-Config""%" parsed as integer otherwise 1) at player for player
 function skQuests_quest1(p: player, pa: integer):
 	yaml nodes with keys "" from "skQuests-Quests" is set:
 		size of yaml nodes with keys "" from "skQuests-Quests" is 1:

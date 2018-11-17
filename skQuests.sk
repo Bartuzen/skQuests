@@ -1,5 +1,5 @@
 options:
-	version: 0.4.1
+	version: 0.4.2
 import:
 	java.nio.file.Files
 	java.nio.file.Paths
@@ -150,6 +150,10 @@ function skQuests_YAMLParse() :: objects:
 				add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %yaml value ""parsing.quest.name"" from ""skQuests-Lang""% (%loop-value-1%.quests.%loop-value-2%)" to {_return::*}
 			yaml value "%loop-value-1%.quests.%loop-value-2%.icon" from "skQuests-Quests" isn't set:
 				add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %yaml value ""parsing.quest.icon"" from ""skQuests-Lang""% (%loop-value-1%.quests.%loop-value-2%)" to {_return::*}
+			else if yaml value "%loop-value-1%.quests.%loop-value-2%.icon" from "skQuests-Quests" parsed as item isn't set:
+				set {_t} to yaml value "parsing.quest.unknown.item" from "skQuests-Lang"
+				replace "%%item%%" with yaml value "%loop-value-1%.quests.%loop-value-2%.icon" from "skQuests-Quests" in {_t}
+				add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %{_t}% (%loop-value-1%.quests.%loop-value-2%.icon)" to {_return::*}
 			yaml list "%loop-value-1%.quests.%loop-value-2%.requirements" from "skQuests-Quests" isn't set:
 				add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %yaml value ""parsing.quest.requirements"" from ""skQuests-Lang""% (%loop-value-1%.quests.%loop-value-2%)" to {_return::*}
 			loop yaml list "%loop-value-1%.quests.%loop-value-2%.complete.items" from "skQuests-Quests":

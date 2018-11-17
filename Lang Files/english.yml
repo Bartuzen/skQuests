@@ -6,7 +6,7 @@ messages:
         title: Commands
         reload: Reloads quests file.
         info: Shows info about Skript.
-        get: Give quest book.
+        get: Gives quest book.
     info:
         title: Skript Info
         developer: Developer
@@ -17,14 +17,16 @@ messages:
     no-quest: No quest could be found.
     only-in-game: This command is only usable in game.
     update:
-        updated: You are using latest version of skQuests! (&b%version%&a)
-        outdated-1: You are using an outdated version of Skript. (&4%version% &a-> &b%new version%&c)
+        updated: You are using latest version of &bskQuests&a! (&b%version%&a)
+        outdated-1: You are using an outdated version of &bskQuests&c. (&4%version% &a-> &b%new version%&c)
         outdated-2: Please update it with &b/q update &ccommand.
         updating:
             checking: Checking updates...
-            already-updated: skQuests is already up to date! (&b%version%&a)
-            updating: Updating skQuests to version &b%version%&a...
+            already-updated: '&bskQuests &ais already up to date! (&b%version%&a)'
+            updating: Updating &bskQuests &ato version &b%version%&a...
             updated: skQuest has been updated to &b%version% &asuccessfully!
+            reloading: Reloading &bskQuests&a...
+            reloaded: '&bskQuests &ahas been reloaded succesfully!'
 gui:
     title: Quests
     type: Type
@@ -49,7 +51,7 @@ gui:
     locked: Locked
     required-quests: Required Quests
 parsing:
-    error: Error
+    error: YAML Error
     category:
         no-category: No category could be found
         name: Category name couldn't be found
@@ -60,7 +62,12 @@ parsing:
         name: Quest name couldn't be find
         icon: Quest icon couldn't be find
         requirements: Quest requirements couldn't be find
+        unknown:
+            type: 'Unkown type: %type%'
+            item: 'Unkown item: %item%'
+            entity: 'Unkown entity: %entity%'
+        money-number: 'Money should be a number: %money%'
     successful: YAML file has been loaded successfully!
-    not-successful: '%errors% errors occured while reload YAML file.'
+    not-successful: Ecnountered %errors% errors while reloading YAML file.
 book:
     title: Quest Book

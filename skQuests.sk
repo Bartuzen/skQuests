@@ -1,12 +1,14 @@
 options:
-	version: 0.3
+	version: 0.4
 import:
 	java.nio.file.Files
 	java.nio.file.Paths
+	java.io.File
 	java.io.BufferedReader
 	java.io.InputStreamReader
 	java.net.URL
 	java.lang.System
+	ch.njol.skript.ScriptLoader
 function skQuests_contains(l: objects, t: text) :: boolean:
 	{_l::*} isn't set:
 		return false
@@ -27,7 +29,7 @@ function skQuests_reloadYAML():
 	skQuests_checkYAML("messages.commands.title", "Commands", "skQuests-Lang")
 	skQuests_checkYAML("messages.commands.reload", "Reloads quests file.", "skQuests-Lang")
 	skQuests_checkYAML("messages.commands.info", "Shows info about Skript.", "skQuests-Lang")
-	skQuests_checkYAML("messages.commands.get", "Give quest book.", "skQuests-Lang")
+	skQuests_checkYAML("messages.commands.get", "Gives quest book.", "skQuests-Lang")
 	skQuests_checkYAML("messages.info.title", "Skript Info", "skQuests-Lang")
 	skQuests_checkYAML("messages.info.developer", "Developer", "skQuests-Lang")
 	skQuests_checkYAML("messages.info.version", "Version", "skQuests-Lang")
@@ -36,13 +38,15 @@ function skQuests_reloadYAML():
 	skQuests_checkYAML("messages.wrong-usage", "Wrong usage.", "skQuests-Lang")
 	skQuests_checkYAML("messages.no-quest", "No quest could be found.", "skQuests-Lang")
 	skQuests_checkYAML("messages.only-in-game", "This command is only usable in game.", "skQuests-Lang")
-	skQuests_checkYAML("messages.update.updated", "You are using latest version of skQuests! (&b%%version%%&a)", "skQuests-Lang")
-	skQuests_checkYAML("messages.update.outdated-1", "You are using an outdated version of skQuests. (&4%%version%% &a-> &b%%new version%%&c)", "skQuests-Lang")
+	skQuests_checkYAML("messages.update.updated", "You are using latest version of &bskQuests&a! (&b%%version%%&a)", "skQuests-Lang")
+	skQuests_checkYAML("messages.update.outdated-1", "You are using an outdated version of &bskQuests&c. (&4%%version%% &a-> &b%%new version%%&c)", "skQuests-Lang")
 	skQuests_checkYAML("messages.update.outdated-2", "Please update it with &b/q update &ccommand.", "skQuests-Lang")
 	skQuests_checkYAML("messages.update.updating.checking", "Checking updates...", "skQuests-Lang")
-	skQuests_checkYAML("messages.update.updating.already-updated", "skQuests is already up to date! (&b%%version%%&a)", "skQuests-Lang")
-	skQuests_checkYAML("messages.update.updating.updating", "Updating skQuests to version &b%%version%%&a...", "skQuests-Lang")
+	skQuests_checkYAML("messages.update.updating.already-updated", "&bskQuests &ais already up to date! (&b%%version%%&a)", "skQuests-Lang")
+	skQuests_checkYAML("messages.update.updating.updating", "Updating &bskQuests &ato version &b%%version%%&a...", "skQuests-Lang")
 	skQuests_checkYAML("messages.update.updating.updated", "skQuest has been updated to &b%%version%% &asuccessfully!", "skQuests-Lang")
+	skQuests_checkYAML("messages.update.updating.reloading", "Reloading &bskQuests&a...", "skQuests-Lang")
+	skQuests_checkYAML("messages.update.updating.reloaded", "&bskQuests &ahas been reloaded succesfully!", "skQuests-Lang")
 	skQuests_checkYAML("gui.title", "Quests", "skQuests-Lang")
 	skQuests_checkYAML("gui.type", "Type", "skQuests-Lang")
 	skQuests_checkYAML("gui.types.retrieve", "Collect", "skQuests-Lang")
@@ -62,7 +66,7 @@ function skQuests_reloadYAML():
 	skQuests_checkYAML("gui.back", "Back", "skQuests-Lang")
 	skQuests_checkYAML("gui.locked", "Locked", "skQuests-Lang")
 	skQuests_checkYAML("gui.required-quests", "Required Quests", "skQuests-Lang")
-	skQuests_checkYAML("parsing.error", "Error", "skQuests-Lang")
+	skQuests_checkYAML("parsing.error", "YAML Error", "skQuests-Lang")
 	skQuests_checkYAML("parsing.category.no-category", "No category could be found", "skQuests-Lang")
 	skQuests_checkYAML("parsing.category.name", "Category name couldn't be found", "skQuests-Lang")
 	skQuests_checkYAML("parsing.category.icon", "Category icon couldn't be found", "skQuests-Lang")
@@ -71,8 +75,12 @@ function skQuests_reloadYAML():
 	skQuests_checkYAML("parsing.quest.name", "Quest name couldn't be find", "skQuests-Lang")
 	skQuests_checkYAML("parsing.quest.icon", "Quest icon couldn't be find", "skQuests-Lang")
 	skQuests_checkYAML("parsing.quest.requirements", "Quest requirements couldn't be find", "skQuests-Lang")
+	skQuests_checkYAML("parsing.quest.unknown.type", "Unkown type: %%type%%", "skQuests-Lang")
+	skQuests_checkYAML("parsing.quest.unknown.item", "Unkown item: %%item%%", "skQuests-Lang")
+	skQuests_checkYAML("parsing.quest.unknown.entity", "Unkown entity: %%entity%%", "skQuests-Lang")
+	skQuests_checkYAML("parsing.quest.money-number", "Money should be a number: %%money%%", "skQuests-Lang")
 	skQuests_checkYAML("parsing.successful", "YAML file has been loaded successfully!", "skQuests-Lang")
-	skQuests_checkYAML("parsing.not-successful", "%%errors%% errors occured while reload YAML file.", "skQuests-Lang")
+	skQuests_checkYAML("parsing.not-successful", "Ecnountered %%errors%% errors while reloading YAML file.", "skQuests-Lang")
 	skQuests_checkYAML("book.title", "Quest Book", "skQuests-Lang")
 	skQuests_checkYAML("gui.border", "black stained glass", "skQuests-Config")
 	skQuests_checkYAML("gui.back", "red stained glass", "skQuests-Config")
@@ -91,17 +99,64 @@ function skQuests_YAMLParse() :: objects:
 			add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %yaml value ""parsing.category.name"" from ""skQuests-Lang""% (%loop-value%)" to {_return::*}
 		yaml value "%loop-value%.icon" from "skQuests-Quests" isn't set:
 			add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %yaml value ""parsing.category.icon"" from ""skQuests-Lang""% (%loop-value%)" to {_return::*}
+		else if yaml value "%loop-value%.icon" from "skQuests-Quests" parsed as item isn't set:
+			set {_t} to yaml value "parsing.quest.unknown.item" from "skQuests-Lang"
+			replace "%%item%%" with yaml value "%loop-value%.icon" from "skQuests-Quests" in {_t}
+			add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %{_t}% (%loop-value-1%.icon)" to {_return::*}
 		yaml nodes with keys "%loop-value%.quests" from "skQuests-Quests" isn't set:
 			add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %yaml value ""parsing.category.quest"" from ""skQuests-Lang""% (%loop-value%)" to {_return::*}
 		loop yaml nodes with keys "%loop-value%.quests" from "skQuests-Quests":
 			yaml value "%loop-value-1%.quests.%loop-value-2%.type" from "skQuests-Quests" isn't set:
 				add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %yaml value ""parsing.quest.type"" from ""skQuests-Lang""% (%loop-value-1%.quests.%loop-value-2%)" to {_return::*}
+			else if yaml value "%loop-value-1%.quests.%loop-value-2%.type" from "skQuests-Quests" isn't "kill", "mobkill", "mob_kill", "mob kill", "break", "blockbreak", "block_break", "block break" or "retrieve":
+				set {_t} to yaml value "parsing.quest.unknown.type" from "skQuests-Lang"
+				replace "%%type%%" with yaml value "%loop-value-1%.quests.%loop-value-2%.type" from "skQuests-Quests" in {_t}
+				add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %{_t}% (%loop-value-1%.quests.%loop-value-2%)" to {_return::*}
+			else:
+				yaml value "%loop-value-1%.quests.%loop-value-2%.type" from "skQuests-Quests" is "retrieve", "break", "blockbreak", "block_break" or "block break":
+					loop yaml list "%loop-value-1%.quests.%loop-value-2%.requirements" from "skQuests-Quests":
+						set {_l} to "%loop-value-3%"
+						set {_l::*} to {_l} split at " as "
+						{_l::1} parsed as item isn't set
+						set {_t} to yaml value "parsing.quest.unknown.item" from "skQuests-Lang"
+						replace "%%item%%" with "%loop-value-3%" in {_t}
+						add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %{_t}% (%loop-value-1%.quests.%loop-value-2%.requirements)" to {_return::*}
+				else:
+					loop yaml list "%loop-value-1%.quests.%loop-value-2%.requirements" from "skQuests-Quests":
+						set {_l} to "%loop-value-3%"
+						set {_l::*} to {_l} split at " as "
+						{_l::1} parsed as entity type is set:
+							set {_mob} to {_l::1} parsed as entity type
+						else:
+							set {_l2::*} to {_l::1} split at " "
+							{_l2::1} parsed as integer is set
+							loop size of {_l2::*} times:
+								loop-number isn't 1
+								add {_l2::%loop-number%} to {_mob::*}
+							set {_mob} to join {_mob::*} with " " parsed as entity type
+						{_mob} isn't set
+						set {_t} to yaml value "parsing.quest.unknown.entity" from "skQuests-Lang"
+						replace "%%entity%%" with "%loop-value-3%" in {_t}
+						add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %{_t}% (%loop-value-1%.quests.%loop-value-2%.requirements)" to {_return::*}
 			yaml value "%loop-value-1%.quests.%loop-value-2%.name" from "skQuests-Quests" isn't set:
 				add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %yaml value ""parsing.quest.name"" from ""skQuests-Lang""% (%loop-value-1%.quests.%loop-value-2%)" to {_return::*}
 			yaml value "%loop-value-1%.quests.%loop-value-2%.icon" from "skQuests-Quests" isn't set:
 				add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %yaml value ""parsing.quest.icon"" from ""skQuests-Lang""% (%loop-value-1%.quests.%loop-value-2%)" to {_return::*}
 			yaml list "%loop-value-1%.quests.%loop-value-2%.requirements" from "skQuests-Quests" isn't set:
 				add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %yaml value ""parsing.quest.requirements"" from ""skQuests-Lang""% (%loop-value-1%.quests.%loop-value-2%)" to {_return::*}
+			loop yaml list "%loop-value-1%.quests.%loop-value-2%.complete.items" from "skQuests-Quests":
+				set {_l} to "%loop-value-3%"
+				set {_l::*} to {_l} split at " as "
+				{_l::1} parsed as item isn't set
+				set {_t} to yaml value "parsing.quest.unknown.item" from "skQuests-Lang"
+				replace "%%item%%" with "%loop-value-3%" in {_t}
+				add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %{_t}% (%loop-value-1%.quests.%loop-value-2%.requirements)" to {_return::*}
+			yaml value "%loop-value-1%.quests.%loop-value-2%.complete.money" from "skQuests-Quests" is set:
+				set {_m} to yaml value "%loop-value-1%.quests.%loop-value-2%.complete.money" from "skQuests-Quests"
+				"%{_m}%" parsed as number isn't set
+				set {_t} to yaml value "parsing.quest.money-number" from "skQuests-Lang"
+				replace "%%money%%" with "%{_m}%" in {_t}
+				add "&7[&askQuests&7] &c%yaml value ""parsing.error"" from ""skQuests-Lang""%: %{_t}% (%loop-value-1%.quests.%loop-value-2%.complete.money)" to {_return::*}
 	{_return::*} isn't set:
 		add "&7[&askQuests&7] &a%yaml value ""parsing.successful"" from ""skQuests-Lang""%" to {_return::*}
 	else:
@@ -122,8 +177,10 @@ function skQuests_checkUpdate() :: text:
 			replace " ", "	" and "version:" with "" in {_return::%{_count}%}
 			return {_return::%{_count}%}
 load:
+	{skQuests} isn't set
 	skQuests_reloadYAML()
-	save yaml "skQuests-Lang" without extra lines between nodes
+	loop players:
+		load yaml "plugins/Skript/scripts/skQuests/players/%loop-player's name in lower case%.yml" as "skQuests-Player-%loop-player's name in lower case%"
 	wait 10 tick
 	loop skQuests_YAMLParse():
 		send "%loop-value%" to console
@@ -141,6 +198,11 @@ load:
 		replace "%%new version%%" with {_ver} in {_t2}
 		send "&7[&askQuests&7] &c%{_t1}%" to console
 		send "&7[&askQuests&7] &c%{_t2}%" to console
+unload:
+	{skQuests} isn't set
+	loop players:
+		save yaml "skQuests-Player-%loop-player's name in lower case%" without extra lines between nodes
+		unload yaml "skQuests-Player-%loop-player's name in lower case%"
 join:
 	set {_p} to "%player%" in lower case
 	load yaml "plugins/Skript/scripts/skQuests/players/%{_p}%.yml" as "skQuests-Player-%{_p}%"
@@ -226,6 +288,7 @@ function skQuests_quest1(p: player, pa: integer):
 		loop yaml nodes with keys "" from "skQuests-Quests":
 			add 1 to {_c::2::1}
 			{_c::2::1} is between {_pa} * 45 - 44 and {_pa} * 45
+			delete {_desc}
 			set {_name} to yaml value "%loop-value%.name" from "skQuests-Quests"
 			set {_desc} to yaml value "%loop-value%.desc" from "skQuests-Quests"
 			{_desc} is set:
@@ -270,14 +333,15 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 			add 1 to {_c::2::2}
 			{_c::2::2} is between {_pa} * 45 - 44 and {_pa} * 45
 			add 1 to {_c::1::2}
-			delete {_ok} and {_lore::*}
+			delete {_desc}, {_ok} and {_lore::*}
 			loop yaml list "%{_cat}%.quests.%loop-value%.quests" from "skQuests-Quests":
 				skQuests_contains(yaml list "completed" from "skQuests-Player-%{_p}'s name in lower case%", "%loop-value-2%") is false
 				set {_ok} to 1
 			{_ok} isn't set:
 				delete {_no}
 				set {_desc} to yaml value "%{_cat}%.quests.%loop-value%.desc" from "skQuests-Quests"
-				add "&f%{_desc}%" to {_lore::*}
+				{_desc} is set:
+					add "&f%{_desc}%" to {_lore::*}
 				yaml value "%{_cat}%.quests.%loop-value%.type" from "skQuests-Quests" is "retrieve":
 					add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.retrieve"" from ""skQuests-Lang""%||&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
 					loop yaml list "%{_cat}%.quests.%loop-value%.requirements" from "skQuests-Quests":
@@ -327,7 +391,7 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 							loop size of {_l2::*} times:
 								loop-number isn't 1
 								add {_l2::%loop-number%} to {_mob::*}
-							set {_mob} to join {_mob::*} with " "
+							set {_mob} to join {_mob::*} with " " parsed as entity type
 						{_mob} is set
 						skQuests_contains(yaml list "completed" from "skQuests-Player-%{_p}'s name in lower case%", "%{_cat}%.%loop-value-1%") is false:
 							first element out of {_l::1} split at " " parsed as integer is set:
@@ -482,6 +546,12 @@ command /quest [<text>]:
 					set {_t} to yaml value "messages.update.updating.updated" from "skQuests-Lang"
 					replace "%%version%%" with {_ver} in {_t}
 					send "&7[&askQuests&7] &a%{_t}%"
+					send "&7[&askQuests&7] &a%yaml value ""messages.update.updating.reloading"" from ""skQuests-Lang""%"
+					set {skQuests} to true
+					ScriptLoader.unloadScript(new File("plugins/Skript/scripts/%script's name%.sk"))
+					ScriptLoader.loadScripts(new File("plugins/Skript/scripts/%script's name%.sk"))
+					delete {skQuests}
+					send "&7[&askQuests&7] &a%yaml value ""messages.update.updating.reloaded"" from ""skQuests-Lang""%"
 			else:
 				send "&c%yaml value ""messages.no-perm"" from ""skQuests-Lang""%"
 		else:

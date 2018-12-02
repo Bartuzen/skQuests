@@ -1,5 +1,5 @@
 options:
-	version: 0.4.2
+	version: 0.5
 import:
 	java.nio.file.Files
 	java.nio.file.Paths
@@ -8,7 +8,9 @@ import:
 	java.io.InputStreamReader
 	java.net.URL
 	java.lang.System
+	org.bukkit.Bukkit
 	ch.njol.skript.ScriptLoader
+	me.clip.placeholderapi.PlaceholderAPI
 function skQuests_contains(l: objects, t: text) :: boolean:
 	{_l::*} isn't set:
 		return false
@@ -188,6 +190,24 @@ function skQuests_checkUpdate() :: text:
 			{_in}.close()
 			replace " ", "	" and "version:" with "" in {_return::%{_count}%}
 			return {_return::%{_count}%}
+local expression skquests placeholder[s] parsed %$strings% [(for|from) %-player%]:
+	return type: string
+	get:
+		Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"):
+			loop expressions 1:
+				add PlaceholderAPI.setPlaceholders(expression 2, loop-value) to {_return::*}
+			return {_return::*}
+		else:
+			return expression 1
+local expression %item% with skquests lore %$strings%:
+	return type: item
+	get:
+		set {_i} to expression 1
+		set {_c} to 0
+		loop expressions 2:
+			add 1 to {_c}
+			set {_c}th line of lore of {_i} to "%loop-value%"
+		return {_i}
 load:
 	{skQuests} isn't set
 	skQuests_reloadYAML()
@@ -234,6 +254,7 @@ death:
 			skQuests_contains(yaml list "completed" from "skQuests-Player-%attacker's name in lower case%", "%loop-value-1%.%loop-value-2%") is false
 			yaml value "%loop-value-1%.quests.%loop-value-2%.type" from "skQuests-Quests" is "kill", "mobkill", "mob_kill" or "mob kill"
 			loop yaml list "%loop-value-1%.quests.%loop-value-2%.requirements" from "skQuests-Quests":
+				delete {_mob::*}
 				set {_l} to "%loop-value-3%"
 				set {_l::*} to {_l} split at " as "
 				set {_l2::*} to {_l::1} split at " "
@@ -313,21 +334,25 @@ function skQuests_quest1(p: player, pa: integer):
 				skQuests_quest1(player, "%{_pa}+1%" parsed as integer)
 		else:	
 			format gui slot {_size} * 9 - 1 of {_p} with yaml value "gui.page.no-page" from "skQuests-Config" parsed as item named "&f%yaml value ""gui.page.next"" from ""skQuests-Lang""% &a>>"
-		format gui slot {_size} * 9 - 7 of {_p} with yaml value "gui.skript-info" from "skQuests-Config" parsed as item named "&a%yaml value ""messages.info.title"" from ""skQuests-Lang""%" with lore "&a%yaml value ""messages.info.developer"" from ""skQuests-Lang""%: &fBartuzen||&a%yaml value ""messages.info.version"" from ""skQuests-Lang""%: &f{@version}"
+		format gui slot {_size} * 9 - 7 of {_p} with yaml value "gui.skript-info" from "skQuests-Config" parsed as item named "&a%yaml value ""messages.info.title"" from ""skQuests-Lang""%" with skquests lore "&a%yaml value ""messages.info.developer"" from ""skQuests-Lang""%: &fBartuzen" and "&a%yaml value ""messages.info.version"" from ""skQuests-Lang""%: &f{@version}"
 		format gui slot {_size} * 9 - 5 of {_p} with yaml value "gui.back" from "skQuests-Config" parsed as item named "&c%yaml value ""gui.close"" from ""skQuests-Lang""%" to close
-		format gui slot {_size} * 9 - 3 of {_p} with yaml value "gui.page.info" from "skQuests-Config" parsed as item named "&a%yaml value ""gui.page.title"" from ""skQuests-Lang""%" with lore "&a%yaml value ""gui.page.page"" from ""skQuests-Lang""%: &f%{_pa}%"
+		format gui slot {_size} * 9 - 3 of {_p} with yaml value "gui.page.info" from "skQuests-Config" parsed as item named "&a%yaml value ""gui.page.title"" from ""skQuests-Lang""%" with skquests lore "&a%yaml value ""gui.page.page"" from ""skQuests-Lang""%: &f%{_pa}%"
 		loop yaml nodes with keys "" from "skQuests-Quests":
 			add 1 to {_c::2::1}
 			{_c::2::1} is between {_pa} * 45 - 44 and {_pa} * 45
-			delete {_desc}
-			set {_name} to yaml value "%loop-value%.name" from "skQuests-Quests"
-			set {_desc} to yaml value "%loop-value%.desc" from "skQuests-Quests"
-			{_desc} is set:
-				set {_desc} to "&f%{_desc}%||&a%yaml value ""gui.click-to-see-quests"" from ""skQuests-Lang""%"
+			delete {_desc::*}
+			set {_name} to skquests placeholder parsed yaml value "%loop-value%.name" from "skQuests-Quests" from {_p}
+			yaml list "%loop-value%.desc" from "skQuests-Quests" is set:
+				loop yaml list "%loop-value%.desc" from "skQuests-Quests":
+					add skquests placeholder parsed "&f%loop-value-2%" from {_p} to {_desc::*}
+				add "&a%yaml value ""gui.click-to-see-quests"" from ""skQuests-Lang""%" to {_desc::*}
+			else if yaml value "%loop-value%.desc" from "skQuests-Quests" is set:
+				set {_d} to yaml value "%loop-value%.desc" from "skQuests-Quests"
+				set {_desc::*} to skquests placeholder parsed "&f%{_d}%" from {_p} and "&a%yaml value ""gui.click-to-see-quests"" from ""skQuests-Lang""%"
 			else:
-				set {_desc} to "&a%yaml value ""gui.click-to-see-quests"" from ""skQuests-Lang""%"
+				set {_desc::*} to "&a%yaml value ""gui.click-to-see-quests"" from ""skQuests-Lang""%"
 			add 1 to {_c::1::1}
-			format gui slot {_c::1::1}-1 of {_p} with yaml value "%loop-value%.icon" from "skQuests-Quests" parsed as item named "&a%{_name}%" with lore {_desc} to close then run function skQuests_quest2({_p}, 1, "%loop-value%")
+			format gui slot {_c::1::1}-1 of {_p} with yaml value "%loop-value%.icon" from "skQuests-Quests" parsed as item named "&a%{_name}%" with skquests lore {_desc::*} to close then run function skQuests_quest2({_p}, 1, "%loop-value%")
 	else:
 		send "&c%yaml value ""messages.no-quest"" from ""skQuests-Lang""%" to {_p}
 function skQuests_quest2(p: player, pa: integer, cat: text):
@@ -336,7 +361,7 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 			set {_size} to 6
 		else:
 			set {_size} to ceil(size of yaml nodes with keys "%{_cat}%.quests" from "skQuests-Quests"/9)+1
-		set {_cn} to yaml value "%{_cat}%.name" from "skQuests-Quests"
+		set {_cn} to skquests placeholder parsed yaml value "%{_cat}%.name" from "skQuests-Quests" from {_p}
 		size of yaml nodes with keys "" from "skQuests-Quests" is 1:
 			open virtual chest inventory with size {_size} named "&a%yaml value ""gui.title"" from ""skQuests-Lang""%" to {_p}
 		else:
@@ -353,13 +378,13 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 				skQuests_quest2(player, "%{_pa}+1%" parsed as integer, {_cat})
 		else:
 			format gui slot {_size} * 9 - 1 of {_p} with yaml value "gui.page.no-page" from "skQuests-Config" parsed as item named "&f%yaml value ""gui.page.next"" from ""skQuests-Lang""% &a>>"
-		format gui slot {_size} * 9 - 7 of {_p} with yaml value "gui.skript-info" from "skQuests-Config" parsed as item named "&a%yaml value ""messages.info.title"" from ""skQuests-Lang""%" with lore "&a%yaml value ""messages.info.developer"" from ""skQuests-Lang""%: &fBartuzen||&a%yaml value ""messages.info.version"" from ""skQuests-Lang""%: &f{@version}"
+		format gui slot {_size} * 9 - 7 of {_p} with yaml value "gui.skript-info" from "skQuests-Config" parsed as item named "&a%yaml value ""messages.info.title"" from ""skQuests-Lang""%" with skquests lore "&a%yaml value ""messages.info.developer"" from ""skQuests-Lang""%: &fBartuzen" and "&a%yaml value ""messages.info.version"" from ""skQuests-Lang""%: &f{@version}"
 		size of yaml nodes with keys "" from "skQuests-Quests" is 1:
 			format gui slot {_size} * 9 - 5 of {_p} with yaml value "gui.back" from "skQuests-Config" parsed as item named "&c%yaml value ""gui.close"" from ""skQuests-Lang""%" to close
-			format gui slot {_size} * 9 - 3 of {_p} with yaml value "gui.page.info" from "skQuests-Config" parsed as item named "&a%yaml value ""gui.page.title"" from ""skQuests-Lang""%" with lore "&a%yaml value ""gui.page.page"" from ""skQuests-Lang""%: &f%{_pa}%"
+			format gui slot {_size} * 9 - 3 of {_p} with yaml value "gui.page.info" from "skQuests-Config" parsed as item named "&a%yaml value ""gui.page.title"" from ""skQuests-Lang""%" with skquests lore "&a%yaml value ""gui.page.page"" from ""skQuests-Lang""%: &f%{_pa}%"
 		else:
 			format gui slot {_size} * 9 - 5 of {_p} with yaml value "gui.back" from "skQuests-Config" parsed as item named "&c%yaml value ""gui.back"" from ""skQuests-Lang""%" to run function skQuests_quest1({_p}, 1)
-			format gui slot {_size} * 9 - 3 of {_p} with yaml value "gui.page.info" from "skQuests-Config" parsed as item named "&a%yaml value ""gui.page.title"" from ""skQuests-Lang""%" with lore "&a%yaml value ""gui.page.category"" from ""skQuests-Lang""%: &f%{_cn}%||&a%yaml value ""gui.page.page"" from ""skQuests-Lang""%: &f%{_pa}%"
+			format gui slot {_size} * 9 - 3 of {_p} with yaml value "gui.page.info" from "skQuests-Config" parsed as item named "&a%yaml value ""gui.page.title"" from ""skQuests-Lang""%" with skquests lore "&a%yaml value ""gui.page.category"" from ""skQuests-Lang""%: &f%{_cn}%" and "&a%yaml value ""gui.page.page"" from ""skQuests-Lang""%: &f%{_pa}%"
 		loop yaml nodes with keys "%{_cat}%.quests" from "skQuests-Quests":
 			add 1 to {_c::2::2}
 			{_c::2::2} is between {_pa} * 45 - 44 and {_pa} * 45
@@ -370,11 +395,14 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 				set {_ok} to 1
 			{_ok} isn't set:
 				delete {_no}
-				set {_desc} to yaml value "%{_cat}%.quests.%loop-value%.desc" from "skQuests-Quests"
-				{_desc} is set:
-					add "&f%{_desc}%" to {_lore::*}
+				yaml list "%{_cat}%.quests.%loop-value%.desc" from "skQuests-Quests" is set:
+					loop yaml list "%{_cat}%.quests.%loop-value%.desc" from "skQuests-Quests":
+						add skquests placeholder parsed "&f%loop-value-2%" from {_p} to {_lore::*}
+				else if yaml value "%{_cat}%.quests.%loop-value%.desc" from "skQuests-Quests" is set:
+					set {_d} to yaml value "%{_cat}%.quests.%loop-value%.desc" from "skQuests-Quests"
+					add skquests placeholder parsed "&f%{_d}%" from {_p} to {_lore::*}
 				yaml value "%{_cat}%.quests.%loop-value%.type" from "skQuests-Quests" is "retrieve":
-					add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.retrieve"" from ""skQuests-Lang""%||&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
+					add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.retrieve"" from ""skQuests-Lang""%" and "&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
 					loop yaml list "%{_cat}%.quests.%loop-value%.requirements" from "skQuests-Quests":
 						set {_l} to "%loop-value-2%"
 						set {_l::*} to {_l} split at " as "
@@ -388,7 +416,7 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 						else:
 							add "&a- %last element out of {_l::*}%" to {_lore::*}
 				else if yaml value "%{_cat}%.quests.%loop-value%.type" from "skQuests-Quests" is "break", "blockbreak", "block_break" or "block break":
-					add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.break"" from ""skQuests-Lang""%||&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
+					add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.break"" from ""skQuests-Lang""%" and "&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
 					loop yaml list "%{_cat}%.quests.%loop-value%.requirements" from "skQuests-Quests":
 						set {_l} to "%loop-value-2%"
 						set {_l::*} to {_l} split at " as "
@@ -410,7 +438,7 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 						else:
 							add "&a- %last element out of {_l::*}%" to {_lore::*}
 				else if yaml value "%{_cat}%.quests.%loop-value%.type" from "skQuests-Quests" is "kill", "mobkill", "mob_kill" or "mob kill":
-					add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.kill"" from ""skQuests-Lang""%||&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
+					add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.kill"" from ""skQuests-Lang""%" and "&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
 					loop yaml list "%{_cat}%.quests.%loop-value%.requirements" from "skQuests-Quests":
 						set {_l} to "%loop-value-2%"
 						set {_l::*} to {_l} split at " as "
@@ -464,7 +492,7 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 						set {_name} to "&a%{_name}%"
 					else:
 						set {_name} to "&c%{_name}%"
-					format gui slot {_c::1::2}-1 of {_p} with yaml value "%{_cat}%.quests.%loop-value%.icon" from "skQuests-Quests" parsed as item named "&a%{_name}%" with lore join {_lore::*} with "||" to close:
+					format gui slot {_c::1::2}-1 of {_p} with (yaml value "%{_cat}%.quests.%loop-value%.icon" from "skQuests-Quests") parsed as item named skquests placeholder parsed {_name} from {_p} with skquests lore {_lore::*} to close:
 						yaml value "%{_cat}%.quests.%{_id}%.type" from "skQuests-Quests" is "retrieve":
 							loop yaml list "%{_cat}%.quests.%{_id}%.requirements" from "skQuests-Quests":
 								set {_l} to "%loop-value-2%"
@@ -503,15 +531,15 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 				else:
 					add "&a%yaml value ""messages.completed"" from ""skQuests-Lang""%" to {_lore::*}
 					set {_name} to "&a%{_name}%"
-					format gui slot {_c::1::2}-1 of {_p} with light green dye named "&a%{_name}%" with lore join {_lore::*} with "||"
+					format gui slot {_c::1::2}-1 of {_p} with light green dye named skquests placeholder parsed "&a%{_name}%" from {_p} with skquests lore {_lore::*}
 			else:
 				loop yaml list "%{_cat}%.quests.%loop-value%.quests" from "skQuests-Quests":
 					skQuests_contains(yaml list "completed" from "skQuests-Player-%{_p}'s name in lower case%", "%loop-value-2%") is false
 					set {_l} to loop-value-2
 					delete {_name}
 					set {_name} to yaml value "%first element out of {_l} split at "".""%.quests.%last element out of {_l} split at "".""%.name" from "skQuests-Quests"
-					add "&c- %{_name}%" to {_lore::*}
-				format gui slot {_c::1::2}-1 of {_p} with barrier named "&c%yaml value ""gui.locked"" from ""skQuests-Lang""%" with lore "&e%yaml value ""gui.required-quests"" from ""skQuests-Lang""%:||%join {_lore::*} with ""||""%"
+					add "&c- %skquests placeholder parsed {_name} from {_p}%" to {_lore::*}
+				format gui slot {_c::1::2}-1 of {_p} with barrier named "&c%yaml value ""gui.locked"" from ""skQuests-Lang""%" with skquests lore "&e%yaml value ""gui.required-quests"" from ""skQuests-Lang""%:" and {_lore::*}
 	else:
 		send "&c%yaml value ""messages.no-quest"" from ""skQuests-Lang""%" to {_p}
 command /quest [<text>]:

@@ -7,6 +7,8 @@ messages:
         reload: Reloads quests file.
         info: Shows info about Skript.
         get: Gives quest book.
+        update: Updates Skript.
+        github-click: Click
     info:
         title: Skript Info
         developer: Developer
@@ -35,6 +37,7 @@ gui:
         break: Block Break
         kill: Kill
     requirements: Requirements
+    reset-in: 'Reset In: &f%time%'
     awards:
         text: Awards
         money: Money
@@ -50,6 +53,9 @@ gui:
     back: Back
     locked: Locked
     required-quests: Required Quests
+title:
+    completed: Quest Completed!
+    quest-completed: You completed &b%quest% &aquest!
 parsing:
     error: YAML Error
     category:
@@ -63,11 +69,29 @@ parsing:
         icon: Quest icon couldn't be find
         requirements: Quest requirements couldn't be find
         unknown:
+            reset-in: 'Invalid timespan: %timespan%'
             type: 'Unkown type: %type%'
             item: 'Unkown item: %item%'
             entity: 'Unkown entity: %entity%'
         money-number: 'Money should be a number: %money%'
     successful: YAML file has been loaded successfully!
-    not-successful: Ecnountered %errors% errors while reloading YAML file.
+    not-successful: Encountered %errors% errors while reloading YAML file.
+time:
+    single:
+        second: Second
+        minute: Minute
+        hour: Hour
+        day: Day
+        week: Week
+        month: Month
+        year: Year
+    plural:
+        seconds: Seconds
+        minutes: Minutes
+        hours: Hours
+        days: Days
+        weeks: Weeks
+        months: Months
+        years: Years
 book:
     title: Quest Book

@@ -1,0 +1,98 @@
+#Translation by: Soufreur7877 (https://www.spigotmc.org/members/soufreur7877.489833/)
+messages:
+    complete: Vous avez complété la quête
+    not-complete: Vous n'avez pas encore complété cette quête
+    completed: Cette quête est complétée
+    commands:
+        title: Commandes
+        reload: Reload du fichier des quêtes
+        info: Information sur skript
+        get: Recevoir le livre des quêtes
+        update: Mettre à jour skript.
+        github-click: Clic
+    info:
+        title: Informations skript
+        developer: Developpeur
+        version: Version
+    book-given: Livre des quêtes give avec succés
+    no-perm: Vous n'avez pas la permission pour faire cela
+    wrong-usage: Mauvais usage
+    no-quest: Aucune quête n'a pu être trouvé
+    only-in-game: Commande utilisable uniquement en jeu
+    update:
+        updated: Vous utilisé la derniére version de &bskQuests&a! (&b%version%&a)
+        outdated-1: Vous utilisez une ancienn version de &bskQuests&c. (&4%version% &a-> &b%new version%&c)
+        outdated-2: Merci de mettre à jour avec la commande &b/q update.
+        updating:
+            checking: Recherche de mise à jour...
+            already-updated: '&bskQuests &aa déjà la derniére version (&b%version%&a)'
+            updating: Mise à jour de &bskQuests &avers la version &b%version%&a...
+            updated: skQuest a été mis à jour avec la version &b%version%
+            reloading: Rechargement de &bskQuests&a...
+            reloaded: '&bskQuests &aa bien été rechargé'
+gui:
+    title: Quêtes
+    type: Type
+    types:
+        retrieve: Récolter
+        break: Casser des blocs
+        kill: Kill
+    requirements: Nécessaires
+    reset-in: 'Réinitilisation dans: &f%time%'
+    awards:
+        text: Récompense
+        money: Argent
+    click-to-complete: Clique pour finir la quête
+    click-to-see-quests: Clique pour voir les quêtes
+    page:
+        previous: Page précédente
+        next: Page suivante
+        title: Information de la page
+        category: Catégorie
+        page: Page
+    close: Fermer
+    back: Retour
+    locked: Verouillé
+    required-quests: Quêtes requises
+title:
+    completed: Quête accomplie !
+    quest-completed: Vous avez complété la &b%quest% &aquête!
+parsing:
+    error: Erreur YAML
+    category:
+        no-category: Aucune catégorie trouvée
+        name: Le nom de la catégorie n'a pas pu être trouvé
+        icon: L'icon de la catégorie n'a pas pu être trouvé
+        quest: Aucune quête dans la catégorie n'a pas pu être trouvé
+    quest:
+        type: Le type de la quête n'a pas pu être trouvé
+        name: Le nom de la quête n'a pas pu être trouvé
+        icon: L'icon de la quête n'a pas pu être trouvé
+        requirements: Les nécessités pour accomplir la quête n'ont pas pu être trouvé
+        unknown:
+            reset-in: 'Durée invalide: %timespan%'
+            type: 'Type invalide: %type%'
+            item: 'Item invalide: %item%'
+            entity: 'Entité invalide: %entity%'
+        money-number: 'L'argent doit être un nombre: %money%'
+    successful: Le fichier YAML a bien été chargé !
+    not-successful: %errors% erreurs rencontrées durant le chargent du fichier YAML.
+time:
+    single:
+        second: Seconde
+        minute: Minute
+        hour: Heure
+        day: Jour
+        week: Semaine
+        month: Mois
+        year: Année
+    plural:
+        seconds: Secondes
+        minutes: Minutes
+        hours: Heurs
+        days: Jours
+        weeks: Semaines
+        months: Mois
+        years: Années
+book:
+    title: Livre de quêtes

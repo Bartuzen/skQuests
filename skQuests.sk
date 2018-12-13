@@ -1,5 +1,5 @@
 options:
-	version: 0.6
+	version: 0.7
 import:
 	java.nio.file.Files
 	java.nio.file.Paths
@@ -69,6 +69,8 @@ function skQuests_reloadYAML():
 	skQuests_checkYAML("gui.page.page", "Page", "skQuests-Lang")
 	skQuests_checkYAML("gui.close", "Close", "skQuests-Lang")
 	skQuests_checkYAML("gui.back", "Back", "skQuests-Lang")
+	skQuests_checkYAML("gui.times-completed", "You completed this quest &b%%times%% &atimes.", "skQuests-Lang")
+	skQuests_checkYAML("gui.repetable", "Repeatable", "skQuests-Lang")
 	skQuests_checkYAML("gui.locked", "Locked", "skQuests-Lang")
 	skQuests_checkYAML("gui.required-quests", "Required Quests", "skQuests-Lang")
 	skQuests_checkYAML("title.completed", "Quest Completed!", "skQuests-Lang")
@@ -216,14 +218,15 @@ function skQuests_checkUpdate() :: text:
 			replace " ", "	" and "version:" with "" in {_return::%{_count}%}
 			return {_return::%{_count}%}
 function skQuests_roundedTimespan(t: timespan) :: text:
-    loop split "%{_t}%" at " ":
-        loop-value parsed as number is set:
-            add round(loop-value parsed as number) to {_return::*}
-        else if loop-value is "second", "minute", "hour", "day", "week", "month" or "year":
-            add yaml value "time.single.%loop-value%" from "skQuests-Lang" to {_return::*}
-        else if loop-value is "seconds", "minutes", "hours", "days", "weeks", "months" or "years":
-            add yaml value "time.plural.%loop-value%" from "skQuests-Lang" to {_return::*}
-    return join {_return::*} with " "
+	loop split "%{_t}%" at " ":
+		loop-value parsed as number is set:
+			add round(loop-value parsed as number) to {_return::*}
+		else if loop-value isn't "and":
+			last 1 character of loop-value is "s":
+				add yaml value "time.plural.%loop-value%" from "skQuests-Lang" to {_return::*}
+			else:
+				add yaml value "time.single.%loop-value%" from "skQuests-Lang" to {_return::*}
+	return join {_return::*} with " "
 local expression skquests placeholder[s] parsed %$strings% [(for|from) %-player%]:
 	return type: string
 	get:
@@ -282,15 +285,15 @@ death:
 		loop yaml nodes with keys "%loop-value%.quests" from "skQuests-Quests":
 			delete {_ok}
 			loop yaml list "%loop-value-1%.quests.%loop-value-2%.quests" from "skQuests-Quests":
-				skQuests_contains(yaml list "completed" from "skQuests-Player-%attacker's name in lower case%", "%loop-value-3%") is false
+				yaml value "%loop-value-3%.completed" from "skQuests-Player-%attacker's name in lower case%" isn't set
 				set {_ok} to 1
 			yaml value "%loop-value-1%.quests.%loop-value-2%.reset-in" from "skQuests-Quests" is set:
-				yaml value "reset.%loop-value-1%.%loop-value-2%" from "skQuests-Player-%attacker's name in lower case%" is set
-				set {_date::*} to yaml value "reset.%loop-value-1%.%loop-value-2%" from "skQuests-Player-%attacker's name in lower case%" split at " "
+				yaml value "%loop-value-1%.%loop-value-2%.reset" from "skQuests-Player-%attacker's name in lower case%" is set
+				set {_date::*} to yaml value "%loop-value-1%.%loop-value-2%.reset" from "skQuests-Player-%attacker's name in lower case%" split at " "
 				difference between now and date({_date::1} parsed as integer, {_date::2} parsed as integer, {_date::3} parsed as integer, {_date::4} parsed as integer, {_date::5} parsed as integer, {_date::6} parsed as integer) is smaller than yaml value "%loop-value-1%.quests.%loop-value-2%.reset-in" from "skQuests-Quests" parsed as timespan
 				set {_ok} to 1
 			{_ok} isn't set
-			skQuests_contains(yaml list "completed" from "skQuests-Player-%attacker's name in lower case%", "%loop-value-1%.%loop-value-2%") is false
+			yaml value "%loop-value-1%.%loop-value-2%.completed" from "skQuests-Player-%attacker's name in lower case%" isn't set
 			yaml value "%loop-value-1%.quests.%loop-value-2%.type" from "skQuests-Quests" is "kill", "mobkill", "mob_kill" or "mob kill"
 			loop yaml list "%loop-value-1%.quests.%loop-value-2%.requirements" from "skQuests-Quests":
 				delete {_mob::*}
@@ -303,20 +306,20 @@ death:
 						add {_l2::%loop-number%} to {_mob::*}
 					set {_mob} to join {_mob::*} with " "
 					type of victim is {_mob} parsed as entity type
-					yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%" is set:
-						{_l2::1} parsed as integer is bigger than yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%":
-							set yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%" to yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%" + 1
-							{_l2::1} parsed as integer is yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%"
+					yaml value "%loop-value-1%.%loop-value-2%.progress.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%" is set:
+						{_l2::1} parsed as integer is bigger than yaml value "%loop-value-1%.%loop-value-2%.progress.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%":
+							set yaml value "%loop-value-1%.%loop-value-2%.progress.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%" to yaml value "%loop-value-1%.%loop-value-2%.progress.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%" + 1
+							{_l2::1} parsed as integer is yaml value "%loop-value-1%.%loop-value-2%.progress.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%"
 							set {_t} to yaml value "title.quest-completed" from "skQuests-Lang"
 							replace "%%quest%%" with yaml value "%loop-value-1%.quests.%loop-value-2%.name" from "skQuests-Quests" in {_t}
 							try attacker.sendTitle("&a%yaml value ""title.completed"" from ""skQuests-Lang""%",placeholder parsed "&a%{_t}%" from attacker,("%yaml value ""complete.title.fade-in"" from ""skQuests-Config""%" parsed as integer otherwise 10),("%yaml value ""complete.title.stay"" from ""skQuests-Config""%" parsed as integer otherwise 70),("%yaml value ""complete.title.fade-out"" from ""skQuests-Config""%" parsed as integer otherwise 20))
 							play sound yaml value "complete.sound.sound" from "skQuests-Config" with volume ("%yaml value ""complete.sound.volume"" from ""skQuests-Config""%" parsed as integer otherwise 1) with pitch ("%yaml value ""complete.sound.pitch"" from ""skQuests-Config""%" parsed as integer otherwise 1) at attacker for attacker
 					else:
-						set yaml value "progress.%loop-value-1%.%loop-value-2%.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%" to 1
+						set yaml value "%loop-value-1%.%loop-value-2%.progress.%{_mob}%" from "skQuests-Player-%attacker's name in lower case%" to 1
 				else:
 					type of victim is {_l::1} parsed as entity type
-					yaml value "progress.%loop-value-1%.%loop-value-2%.%{_l::1} parsed as entity type%" from "skQuests-Player-%attacker's name in lower case%" isn't set
-					set yaml value "progress.%loop-value-1%.%loop-value-2%.%{_l::1} parsed as entity type%" from "skQuests-Player-%attacker's name in lower case%" to 1
+					yaml value "%loop-value-1%.%loop-value-2%.progress.%{_l::1} parsed as entity type%" from "skQuests-Player-%attacker's name in lower case%" isn't set
+					set yaml value "%loop-value-1%.%loop-value-2%.progress.%{_l::1} parsed as entity type%" from "skQuests-Player-%attacker's name in lower case%" to 1
 					set {_t} to yaml value "title.quest-completed" from "skQuests-Lang"
 					replace "%%quest%%" with yaml value "%loop-value-1%.quests.%loop-value-2%.name" from "skQuests-Quests" in {_t}
 					try attacker.sendTitle("&a%yaml value ""title.completed"" from ""skQuests-Lang""%",placeholder parsed "&a%{_t}%" from attacker,("%yaml value ""complete.title.fade-in"" from ""skQuests-Config""%" parsed as integer otherwise 10),("%yaml value ""complete.title.stay"" from ""skQuests-Config""%" parsed as integer otherwise 70),("%yaml value ""complete.title.fade-out"" from ""skQuests-Config""%" parsed as integer otherwise 20))
@@ -326,31 +329,31 @@ break:
 		loop yaml nodes with keys "%loop-value%.quests" from "skQuests-Quests":
 			delete {_ok}
 			loop yaml list "%loop-value-1%.quests.%loop-value-2%.quests" from "skQuests-Quests":
-				skQuests_contains(yaml list "completed" from "skQuests-Player-%player's name in lower case%", "%loop-value-3%") is false
+				yaml value "%loop-value-3%.completed" from "skQuests-Player-%player's name in lower case%" isn't set
 				set {_ok} to 1
 			yaml value "%loop-value-1%.quests.%loop-value-2%.reset-in" from "skQuests-Quests" is set:
-				yaml value "reset.%loop-value-1%.%loop-value-2%" from "skQuests-Player-%player's name in lower case%" is set
-				set {_date::*} to yaml value "reset.%loop-value-1%.%loop-value-2%" from "skQuests-Player-%player's name in lower case%" split at " "
+				yaml value "%loop-value-1%.%loop-value-2%.reset" from "skQuests-Player-%player's name in lower case%" is set
+				set {_date::*} to yaml value "%loop-value-1%.%loop-value-2%.reset" from "skQuests-Player-%player's name in lower case%" split at " "
 				difference between now and date({_date::1} parsed as integer, {_date::2} parsed as integer, {_date::3} parsed as integer, {_date::4} parsed as integer, {_date::5} parsed as integer, {_date::6} parsed as integer) is smaller than yaml value "%loop-value-1%.quests.%loop-value-2%.reset-in" from "skQuests-Quests" parsed as timespan
 				set {_ok} to 1
 			{_ok} isn't set
-			skQuests_contains(yaml list "completed" from "skQuests-Player-%player's name in lower case%", "%loop-value-1%.%loop-value-2%") is false
+			yaml value "%loop-value-1%.%loop-value-2%.completed" from "skQuests-Player-%player's name in lower case%" isn't set
 			yaml value "%loop-value-1%.quests.%loop-value-2%.type" from "skQuests-Quests" is "break", "blockbreak", "block_break" or "block break"
 			loop yaml list "%loop-value-1%.quests.%loop-value-2%.requirements" from "skQuests-Quests":
 				set {_l} to "%loop-value-3%"
 				set {_l::*} to {_l} split at " as "
 				{_l::1} parsed as item is set
 				event-block is "%{_l::1}%" parsed as item
-				yaml value "progress.%loop-value-1%.%loop-value-2%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%" is set:
-					first element out of {_l::1} split at " " parsed as integer is bigger than yaml value "progress.%loop-value-1%.%loop-value-2%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%"
-					set yaml value "progress.%loop-value-1%.%loop-value-2%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%" to yaml value "progress.%loop-value-1%.%loop-value-2%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%" + 1
-					first element out of {_l::1} split at " " parsed as integer is yaml value "progress.%loop-value-1%.%loop-value-2%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%"
+				yaml value "%loop-value-1%.%loop-value-2%.progress.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%" is set:
+					first element out of {_l::1} split at " " parsed as integer is bigger than yaml value "%loop-value-1%.%loop-value-2%.progress.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%"
+					set yaml value "%loop-value-1%.%loop-value-2%.progress.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%" to yaml value "%loop-value-1%.%loop-value-2%.progress.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%" + 1
+					first element out of {_l::1} split at " " parsed as integer is yaml value "%loop-value-1%.%loop-value-2%.progress.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%"
 					set {_t} to yaml value "title.quest-completed" from "skQuests-Lang"
 					replace "%%quest%%" with yaml value "%loop-value-1%.quests.%loop-value-2%.name" from "skQuests-Quests" in {_t}
 					try player.sendTitle("&a%yaml value ""title.completed"" from ""skQuests-Lang""%",placeholder parsed "&a%{_t}%" from player,("%yaml value ""complete.title.fade-in"" from ""skQuests-Config""%" parsed as integer otherwise 10),("%yaml value ""complete.title.stay"" from ""skQuests-Config""%" parsed as integer otherwise 70),("%yaml value ""complete.title.fade-out"" from ""skQuests-Config""%" parsed as integer otherwise 20))
 					play sound yaml value "complete.sound.sound" from "skQuests-Config" with volume ("%yaml value ""complete.sound.volume"" from ""skQuests-Config""%" parsed as integer otherwise 1) with pitch ("%yaml value ""complete.sound.pitch"" from ""skQuests-Config""%" parsed as integer otherwise 1) at player for player
 				else:
-					set yaml value "progress.%loop-value-1%.%loop-value-2%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%" to 1
+					set yaml value "%loop-value-1%.%loop-value-2%.progress.%1 of {_l::1} parsed as item%" from "skQuests-Player-%player's name in lower case%" to 1
 					first element out of {_l::1} split at " " parsed as integer isn't set
 					set {_t} to yaml value "title.quest-completed" from "skQuests-Lang"
 					replace "%%quest%%" with yaml value "%loop-value-1%.quests.%loop-value-2%.name" from "skQuests-Quests" in {_t}
@@ -433,25 +436,26 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 			add 1 to {_c::2::2}
 			{_c::2::2} is between {_pa} * 45 - 44 and {_pa} * 45
 			add 1 to {_c::1::2}
-			delete {_desc}, {_ok} and {_lore::*}
+			delete {_desc}, {_ok}, {_re}, {_no}, {_aw} and {_lore::*}
 			loop yaml list "%{_cat}%.quests.%loop-value%.quests" from "skQuests-Quests":
-				skQuests_contains(yaml list "completed" from "skQuests-Player-%{_p}'s name in lower case%", "%loop-value-2%") is false
+				yaml value "%loop-value-2%.completed" from "skQuests-Player-%{_p}'s name in lower case%" isn't set
 				set {_ok} to 1
 			{_ok} isn't set:
-				delete {_no}
 				yaml list "%{_cat}%.quests.%loop-value%.desc" from "skQuests-Quests" is set:
 					loop yaml list "%{_cat}%.quests.%loop-value%.desc" from "skQuests-Quests":
 						add skquests placeholder parsed "&f%loop-value-2%" from {_p} to {_lore::*}
 				else if yaml value "%{_cat}%.quests.%loop-value%.desc" from "skQuests-Quests" is set:
 					set {_d} to yaml value "%{_cat}%.quests.%loop-value%.desc" from "skQuests-Quests"
 					add skquests placeholder parsed "&f%{_d}%" from {_p} to {_lore::*}
+				yaml value "%{_cat}%.quests.%loop-value%.reset-in" from "skQuests-Quests" is set:
+					set {_re} to " (%yaml value ""gui.repetable"" from ""skQuests-Lang""%)"
 				yaml value "%{_cat}%.quests.%loop-value%.type" from "skQuests-Quests" is "retrieve" or "collect":
-					add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.retrieve"" from ""skQuests-Lang""%" and "&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
+					add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.retrieve"" from ""skQuests-Lang""%%{_re} otherwise """"%" and "&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
 					loop yaml list "%{_cat}%.quests.%loop-value%.requirements" from "skQuests-Quests":
 						set {_l} to "%loop-value-2%"
 						set {_l::*} to {_l} split at " as "
 						{_l::1} parsed as item is set
-						skQuests_contains(yaml list "completed" from "skQuests-Player-%{_p}'s name in lower case%", "%{_cat}%.%loop-value-1%") is false:
+						yaml value "%{_cat}%.%loop-value-1%.completed" from "skQuests-Player-%{_p}'s name in lower case%" isn't set:
 							"%{_p}%" parsed as player has {_l::1} parsed as item:
 								add "&a- %last element out of {_l::*}%" to {_lore::*}
 							else:
@@ -460,20 +464,20 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 						else:
 							add "&a- %last element out of {_l::*}%" to {_lore::*}
 				else if yaml value "%{_cat}%.quests.%loop-value%.type" from "skQuests-Quests" is "break", "blockbreak", "block_break" or "block break":
-					add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.break"" from ""skQuests-Lang""%" and "&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
+					add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.break"" from ""skQuests-Lang""%%{_re} otherwise """"%" and "&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
 					loop yaml list "%{_cat}%.quests.%loop-value%.requirements" from "skQuests-Quests":
 						set {_l} to "%loop-value-2%"
 						set {_l::*} to {_l} split at " as "
 						{_l::1} parsed as item is set
-						skQuests_contains(yaml list "completed" from "skQuests-Player-%{_p}'s name in lower case%", "%{_cat}%.%loop-value-1%") is false:
+						yaml value "%{_cat}%.%loop-value-1%.completed" from "skQuests-Player-%{_p}'s name in lower case%" isn't set:
 							first element out of {_l::1} split at " " parsed as integer is set:
 								set {_a} to first element out of {_l::1} split at " " parsed as integer
 							else:
 								set {_a} to 1
-							yaml value "progress.%{_cat}%.%loop-value-1%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%{_p}'s name in lower case%" is {_a}:
+							yaml value "%{_cat}%.%loop-value-1%.progress.%1 of {_l::1} parsed as item%" from "skQuests-Player-%{_p}'s name in lower case%" is {_a}:
 								add "&a- %last element out of {_l::*}%" to {_lore::*}
 							else:
-								set {_i} to yaml value "progress.%{_cat}%.%loop-value-1%.%1 of {_l::1} parsed as item%" from "skQuests-Player-%{_p}'s name in lower case%"
+								set {_i} to yaml value "%{_cat}%.%loop-value-1%.progress.%1 of {_l::1} parsed as item%" from "skQuests-Player-%{_p}'s name in lower case%"
 								{_i} is set:
 									add "&c- %last element out of {_l::*}% (%{_i}%)" to {_lore::*}
 								else:
@@ -482,7 +486,7 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 						else:
 							add "&a- %last element out of {_l::*}%" to {_lore::*}
 				else if yaml value "%{_cat}%.quests.%loop-value%.type" from "skQuests-Quests" is "kill", "mobkill", "mob_kill" or "mob kill":
-					add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.kill"" from ""skQuests-Lang""%" and "&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
+					add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.kill"" from ""skQuests-Lang""%%{_re} otherwise """"%" and "&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
 					loop yaml list "%{_cat}%.quests.%loop-value%.requirements" from "skQuests-Quests":
 						set {_l} to "%loop-value-2%"
 						set {_l::*} to {_l} split at " as "
@@ -496,15 +500,15 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 								add {_l2::%loop-number%} to {_mob::*}
 							set {_mob} to join {_mob::*} with " " parsed as entity type
 						{_mob} is set
-						skQuests_contains(yaml list "completed" from "skQuests-Player-%{_p}'s name in lower case%", "%{_cat}%.%loop-value-1%") is false:
+						yaml value "%{_cat}%.%loop-value-1%.completed" from "skQuests-Player-%{_p}'s name in lower case%" isn't set:
 							first element out of {_l::1} split at " " parsed as integer is set:
 								set {_a} to first element out of {_l::1} split at " " parsed as integer
 							else:
 								set {_a} to 1
-							yaml value "progress.%{_cat}%.%loop-value-1%.%{_mob}%" from "skQuests-Player-%{_p}'s name in lower case%" is {_a}:
+							yaml value "%{_cat}%.%loop-value-1%.progress.%{_mob}%" from "skQuests-Player-%{_p}'s name in lower case%" is {_a}:
 								add "&a- %last element out of {_l::*}%" to {_lore::*}
 							else:
-								set {_i} to yaml value "progress.%{_cat}%.%loop-value-1%.%{_mob}%" from "skQuests-Player-%{_p}'s name in lower case%"
+								set {_i} to yaml value "%{_cat}%.%loop-value-1%.progress.%{_mob}%" from "skQuests-Player-%{_p}'s name in lower case%"
 								{_i} is set:
 									add "&c- %last element out of {_l::*}% (%{_i}%)" to {_lore::*}
 								else:
@@ -512,7 +516,6 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 								set {_no} to 1
 						else:
 							add "&a- %last element out of {_l::*}%" to {_lore::*}
-				delete {_aw}
 				loop yaml list "%{_cat}%.quests.%loop-value%.complete.items" from "skQuests-Quests":
 					{_aw} isn't set:
 						set {_aw} to 1
@@ -530,10 +533,10 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 					add "&a- %yaml value ""gui.awards.money"" from ""skQuests-Lang""%: &f%{_money}%" to {_lore::*}
 				set {_name} to yaml value "%{_cat}%.quests.%loop-value%.name" from "skQuests-Quests"
 				set {_id} to loop-value
-				skQuests_contains(yaml list "completed" from "skQuests-Player-%{_p}'s name in lower case%", "%{_cat}%.%loop-value%") is false:
+				yaml value "%{_cat}%.%loop-value%.completed" from "skQuests-Player-%{_p}'s name in lower case%" isn't set:
 					yaml value "%{_cat}%.quests.%{_id}%.reset-in" from "skQuests-Quests" is set:
-						yaml value "reset.%{_cat}%.%{_id}%" from "skQuests-Player-%{_p}'s name in lower case%" is set:
-							set {_date::*} to yaml value "reset.%{_cat}%.%{_id}%" from "skQuests-Player-%{_p}'s name in lower case%" split at " "
+						yaml value "%{_cat}%.%{_id}%.reset" from "skQuests-Player-%{_p}'s name in lower case%" is set:
+							set {_date::*} to yaml value "%{_cat}%.%{_id}%.reset" from "skQuests-Player-%{_p}'s name in lower case%" split at " "
 							set {_date} to date({_date::1} parsed as integer, {_date::2} parsed as integer, {_date::3} parsed as integer, {_date::4} parsed as integer, {_date::5} parsed as integer, {_date::6} parsed as integer)
 							difference between now and {_date} is smaller than yaml value "%{_cat}%.quests.%{_id}%.reset-in" from "skQuests-Quests" parsed as timespan:
 								set {_t} to yaml value "gui.reset-in" from "skQuests-Lang"
@@ -546,6 +549,11 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 						set {_name} to "&a%{_name}%"
 					else:
 						set {_name} to "&c%{_name}%"
+					yaml value "%{_cat}%.quests.%{_id}%.reset-in" from "skQuests-Quests" is set:
+						set {_t} to yaml value "gui.times-completed" from "skQuests-Lang"
+						set {_ti} to (yaml value "%{_cat}%.%{_id}%.times" from "skQuests-Player-%{_p}'s name in lower case%") otherwise 0
+						replace "%%times%%" with "%{_ti}%" in {_t}
+						add "&a%{_t}%" to {_lore::*}
 					format gui slot {_c::1::2}-1 of {_p} with (yaml value "%{_cat}%.quests.%loop-value%.icon" from "skQuests-Quests") parsed as item named skquests placeholder parsed {_name} from {_p} with skquests lore {_lore::*} to close:
 						yaml value "%{_cat}%.quests.%{_id}%.type" from "skQuests-Quests" is "retrieve" or "collect":
 							loop yaml list "%{_cat}%.quests.%{_id}%.requirements" from "skQuests-Quests":
@@ -556,14 +564,20 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 								set {_no} to 1
 						{_no} isn't set:
 							yaml value "%{_cat}%.quests.%{_id}%.type" from "skQuests-Quests" is "break", "blockbreak", "block_break", "block break", "kill", "mobkill", "mob_kill" or "mob kill":
-								delete yaml value "progress.%{_cat}%.%{_id}%" from "skQuests-Player-%{_p}'s name in lower case%"
+								delete yaml value "%{_cat}%.%{_id}%.progress" from "skQuests-Player-%{_p}'s name in lower case%"
 							loop yaml list "%{_cat}%.quests.%{_id}%.requirements" from "skQuests-Quests":
 								set {_l} to "%loop-value-2%"
 								set {_l::*} to {_l} split at " as "
 								{_l::1} parsed as item is set
 								remove {_l::1} parsed as item from {_p}
-							yaml value "%{_cat}%.quests.%{_id}%.reset-in" from "skQuests-Quests" isn't set:
-								add "%{_cat}%.%{_id}%" to yaml list "completed" from "skQuests-Player-%{_p}'s name in lower case%"
+							yaml value "%{_cat}%.quests.%{_id}%.reset-in" from "skQuests-Quests" is set:
+								set yaml value "%{_cat}%.%{_id}%.reset" from "skQuests-Player-%{_p}'s name in lower case%" to now formatted as "yyyy MM dd HH mm ss"
+								yaml value "%{_cat}%.%{_id}%.times" from "skQuests-Player-%player's name in lower case%" is set:
+									set yaml value "%{_cat}%.%{_id}%.times" from "skQuests-Player-%player's name in lower case%" to yaml value "%{_cat}%.%{_id}%.times" from "skQuests-Player-%player's name in lower case%"+1
+								else:
+									set yaml value "%{_cat}%.%{_id}%.times" from "skQuests-Player-%player's name in lower case%" to 1
+							else:
+								set yaml value "%{_cat}%.%{_id}%.completed" from "skQuests-Player-%{_p}'s name in lower case%" to true
 							loop yaml list "%{_cat}%.quests.%{_id}%.complete.items" from "skQuests-Quests":
 								set {_l} to "%loop-value-2%"
 								set {_l::*} to {_l} split at " as "
@@ -580,8 +594,6 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 							set {_money} to yaml value "%{_cat}%.quests.%{_id}%.complete.money" from "skQuests-Quests"
 							"%{_money}%" parsed as number is set:
 								add "%{_money}%" parsed as number to {_p}'s balance
-							yaml value "%{_cat}%.quests.%{_id}%.reset-in" from "skQuests-Quests" is set:
-								set yaml value "reset.%{_cat}%.%{_id}%" from "skQuests-Player-%{_p}'s name in lower case%" to now formatted as "yyyy MM dd HH mm ss"
 							send "&a%yaml value ""messages.complete"" from ""skQuests-Lang""%" to {_p}
 						else:
 							send "&c%yaml value ""messages.not-complete"" from ""skQuests-Lang""%" to {_p}
@@ -590,7 +602,7 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 					format gui slot {_c::1::2}-1 of {_p} with (yaml value "gui.completed" from "skQuests-Config" parsed as item) named skquests placeholder parsed "&a%{_name}%" from {_p} with skquests lore {_lore::*}
 			else:
 				loop yaml list "%{_cat}%.quests.%loop-value%.quests" from "skQuests-Quests":
-					skQuests_contains(yaml list "completed" from "skQuests-Player-%{_p}'s name in lower case%", "%loop-value-2%") is false
+					yaml value "%loop-value-2%.completed" from "skQuests-Player-%{_p}'s name in lower case%" isn't set
 					set {_l} to loop-value-2
 					delete {_name}
 					set {_name} to yaml value "%first element out of {_l} split at "".""%.quests.%last element out of {_l} split at "".""%.name" from "skQuests-Quests"

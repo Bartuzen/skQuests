@@ -20,7 +20,8 @@ messages:
     only-in-game: This command is only usable in game.
     update:
         updated: You are using latest version of &bskQuests&a! (&b%version%&a)
-        outdated-1: You are using an outdated version of &bskQuests&c. (&4%version% &a-> &b%new version%&c)
+        outdated-1: You are using an outdated version of &bskQuests&c. (&4%version%
+            &a-> &b%new version%&c)
         outdated-2: Please update it with &b/q update &ccommand.
         updating:
             checking: Checking updates...
@@ -51,6 +52,8 @@ gui:
         page: Page
     close: Close
     back: Back
+    times-completed: You completed this quest &b%times% &atimes.
+    repetable: Repeatable
     locked: Locked
     required-quests: Required Quests
 title:

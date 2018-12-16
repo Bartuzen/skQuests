@@ -20,8 +20,7 @@ messages:
     only-in-game: This command is only usable in game.
     update:
         updated: You are using latest version of &bskQuests&a! (&b%version%&a)
-        outdated-1: You are using an outdated version of &bskQuests&c. (&4%version%
-            &a-> &b%new version%&c)
+        outdated-1: You are using an outdated version of &bskQuests&c. (&4%version% &a-> &b%new version%&c)
         outdated-2: Please update it with &b/q update &ccommand.
         updating:
             checking: Checking updates...
@@ -36,7 +35,10 @@ gui:
     types:
         retrieve: Collect
         break: Block Break
+        place: Block Place
         kill: Kill
+        craft: Craft
+        smelt: Smelt
     requirements: Requirements
     reset-in: 'Reset In: &f%time%'
     awards:

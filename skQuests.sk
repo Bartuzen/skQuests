@@ -1,5 +1,5 @@
 options:
-	version: 0.8
+	version: 0.8.1
 import:
 	java.nio.file.Files
 	java.nio.file.Paths
@@ -479,9 +479,9 @@ function skQuests_quest2(p: player, pa: integer, cat: text):
 				else if yaml value "%{_cat}%.quests.%loop-value%.type" from "skQuests-Quests" is "break", "blockbreak", "block_break", "block break", "place", "blockplace", "block_place", "block place", "craft", "itemcraft", "item_craft", "item craft", "smelt", "itemsmelt", "item_smelt" or "item smelt":
 					yaml value "%{_cat}%.quests.%loop-value%.type" from "skQuests-Quests" is "break", "blockbreak", "block_break" or "block break":
 						add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.break"" from ""skQuests-Lang""%%{_re} otherwise """"%" and "&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
-					yaml value "%{_cat}%.quests.%loop-value%.type" from "skQuests-Quests" is "place", "blockplace", "block_place" or "block place":
+					else if yaml value "%{_cat}%.quests.%loop-value%.type" from "skQuests-Quests" is "place", "blockplace", "block_place" or "block place":
 						add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.place"" from ""skQuests-Lang""%%{_re} otherwise """"%" and "&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
-					yaml value "%{_cat}%.quests.%loop-value%.type" from "skQuests-Quests" is  "craft", "itemcraft", "item_craft" or "item craft":
+					else if yaml value "%{_cat}%.quests.%loop-value%.type" from "skQuests-Quests" is  "craft", "itemcraft", "item_craft" or "item craft":
 						add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.craft"" from ""skQuests-Lang""%%{_re} otherwise """"%" and "&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
 					else:
 						add "&a%yaml value ""gui.type"" from ""skQuests-Lang""%: &f%yaml value ""gui.types.smelt"" from ""skQuests-Lang""%%{_re} otherwise """"%" and "&e%yaml value ""gui.requirements"" from ""skQuests-Lang""%:" to {_lore::*}
